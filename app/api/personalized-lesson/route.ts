@@ -1,41 +1,45 @@
-import { getUserInterestsWithDetails } from "./interests-service"
+import { type NextRequest, NextResponse } from "next/server"
+import { getUserInterestsWithDetails } from "@/lib/interests-service"
 
-const OPENAI_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 
-export interface PersonalizedLessonResponse {
-  selectedInterest: string
-  connection: string
-  error?: string
-}
-
-export async function generatePersonalizedLesson(): Promise<PersonalizedLessonResponse> {
+export async function POST(request: NextRequest) {
   try {
     // Check if API key is available
     if (!OPENAI_API_KEY) {
-      return {
-        selectedInterest: "",
-        connection: "",
-        error: "OpenAI API key not configured. Please check your environment variables.",
-      }
+      return NextResponse.json(
+        {
+          selectedInterest: "",
+          connection: "",
+          error: "OpenAI API key not configured. Please check your environment variables.",
+        },
+        { status: 500 },
+      )
     }
 
     // Get user's interests from Supabase
     const { data: userInterests, error: interestsError } = await getUserInterestsWithDetails()
 
     if (interestsError) {
-      return {
-        selectedInterest: "",
-        connection: "",
-        error: `Failed to load user interests: ${interestsError.message}`,
-      }
+      return NextResponse.json(
+        {
+          selectedInterest: "",
+          connection: "",
+          error: `Failed to load user interests: ${interestsError.message}`,
+        },
+        { status: 500 },
+      )
     }
 
     if (!userInterests || userInterests.length === 0) {
-      return {
-        selectedInterest: "",
-        connection: "",
-        error: "No interests found. Please select some interests first.",
-      }
+      return NextResponse.json(
+        {
+          selectedInterest: "",
+          connection: "",
+          error: "No interests found. Please select some interests first.",
+        },
+        { status: 400 },
+      )
     }
 
     // Format interests for the prompt
@@ -73,11 +77,14 @@ A quadratic function is any function that can be written in the form f(x) = ax²
 
     if (!response.ok) {
       const errorData = await response.json()
-      return {
-        selectedInterest: "",
-        connection: "",
-        error: `OpenAI API error: ${errorData.error?.message || response.statusText}`,
-      }
+      return NextResponse.json(
+        {
+          selectedInterest: "",
+          connection: "",
+          error: `OpenAI API error: ${errorData.error?.message || response.statusText}`,
+        },
+        { status: response.status },
+      )
     }
 
     const data = await response.json()
@@ -88,16 +95,19 @@ A quadratic function is any function that can be written in the form f(x) = ax²
       userInterests.find((interest) => aiResponse.toLowerCase().includes(interest.interest_name.toLowerCase()))
         ?.interest_name || "Unknown"
 
-    return {
+    return NextResponse.json({
       selectedInterest,
       connection: aiResponse,
-    }
+    })
   } catch (error) {
     console.error("Error generating personalized lesson:", error)
-    return {
-      selectedInterest: "",
-      connection: "",
-      error: `Unexpected error: ${error instanceof Error ? error.message : "Unknown error"}`,
-    }
+    return NextResponse.json(
+      {
+        selectedInterest: "",
+        connection: "",
+        error: `Unexpected error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      },
+      { status: 500 },
+    )
   }
 }
