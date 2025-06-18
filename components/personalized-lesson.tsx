@@ -1,46 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2 } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Loader2, Sparkles, BookOpen } from "lucide-react"
+import { generatePersonalizedLesson, type PersonalizedLessonResponse } from "@/lib/openai-service"
 
-interface PersonalizedLessonResponse {
-  selectedInterest: string
-  connection: string
-  error?: string
-}
-
-export default function PersonalizedLesson() {
-  const [response, setResponse] = useState<PersonalizedLessonResponse | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    const generateLesson = async () => {
-      try {
-        setIsLoading(true)
-        const res = await fetch("/api/personalized-lesson", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-
-        const data = await res.json()
-        setResponse(data)
-      } catch (error) {
-        setResponse({
-          selectedInterest: "",
-          connection: "",
-          error: `Network error: ${error instanceof Error ? error.message : "Unknown error"}`,
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    generateLesson()
-  }, [])
+export function PersonalizedLesson() {
+  const [loading, setLoading] = useState(true)
+  const [result, setResult] = useState<PersonalizedLessonResponse | null>(null)
 
   const lessonContent = `Lesson Concept: Introduction to Quadratic Functions
 
@@ -50,55 +18,93 @@ The coefficient 'a' determines whether the parabola opens upward (when a > 0) or
 
 You can find the x-coordinate of the vertex using the formula x = -b/(2a), and substituting this value back into the original equation gives you the y-coordinate of the vertex.`
 
-  return (
-    <div className="space-y-6">
-      {/* Instructions */}
-      <Alert>
-        <AlertDescription>
-          This page automatically connects math lessons to your personal interests using AI. Make sure you have selected
-          interests in the "Your Interests" tab first.
-        </AlertDescription>
-      </Alert>
+  // Auto-generate personalization when component mounts
+  useEffect(() => {
+    const generatePersonalization = async () => {
+      setLoading(true)
+      setResult(null)
 
+      const response = await generatePersonalizedLesson()
+      setResult(response)
+      setLoading(false)
+    }
+
+    generatePersonalization()
+  }, [])
+
+  return (
+    <div className="max-w-4xl space-y-6">
       {/* Original Lesson */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-800">📚 Today's Math Lesson</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-blue-500" />
+            Math Lesson
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="bg-gray-50 p-4 rounded-lg">
-            <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">{lessonContent}</pre>
+            <pre className="whitespace-pre-wrap text-sm text-gray-800 font-sans leading-relaxed">{lessonContent}</pre>
           </div>
         </CardContent>
       </Card>
 
-      {/* AI Personalized Connection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold text-blue-600">🤖 How This Connects to Your Interests</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
+      {/* Loading State */}
+      {loading && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-500" />
+              Personalizing Your Lesson...
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-              <span className="ml-3 text-gray-600">AI is connecting this lesson to your interests...</span>
-            </div>
-          ) : response?.error ? (
-            <Alert>
-              <AlertDescription className="text-red-600">{response.error}</AlertDescription>
-            </Alert>
-          ) : response ? (
-            <div className="space-y-4">
-              {response.selectedInterest && (
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <p className="text-sm font-medium text-blue-800">🎯 Selected Interest: {response.selectedInterest}</p>
-                </div>
-              )}
-              <div className="bg-green-50 p-4 rounded-lg">
-                <p className="text-gray-700 leading-relaxed">{response.connection}</p>
+              <div className="text-center">
+                <Loader2 className="w-8 h-8 animate-spin text-purple-500 mx-auto mb-4" />
+                <p className="text-gray-600">AI is connecting this lesson to your interests...</p>
               </div>
             </div>
-          ) : null}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Results */}
+      {result && !loading && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-500" />
+              Personalized Connection
+              {result.selectedInterest && (
+                <span className="text-sm font-normal text-gray-600">(Connected to: {result.selectedInterest})</span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {result.error ? (
+              <Alert className="border-red-200 bg-red-50">
+                <AlertDescription className="text-red-800">{result.error}</AlertDescription>
+              </Alert>
+            ) : (
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                <p className="text-gray-800 leading-relaxed">{result.connection}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Instructions */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-6">
+          <h3 className="font-semibold text-blue-800 mb-2">How it works:</h3>
+          <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+            <li>Your interests are automatically loaded from the database</li>
+            <li>OpenAI GPT-4 analyzes the lesson and your interests</li>
+            <li>AI selects one of your interests and explains how it connects to quadratic functions</li>
+            <li>You get a personalized explanation that makes math more relevant to you!</li>
+          </ol>
         </CardContent>
       </Card>
     </div>
