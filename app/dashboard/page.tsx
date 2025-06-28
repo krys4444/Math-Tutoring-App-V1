@@ -16,11 +16,9 @@ import {
   LogOut,
   Loader2,
   TestTube,
-  GraduationCap,
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useInterests } from "@/hooks/use-interests"
-import { useGrade } from "@/hooks/use-grade"
 import { PersonalizedLesson } from "@/components/personalized-lesson"
 
 const sidebarItems = [
@@ -72,23 +70,13 @@ export default function Dashboard() {
   const {
     selectedInterests,
     loading: interestsLoading,
-    saving: interestsSaving,
-    error: interestsError,
-    successMessage: interestsSuccessMessage,
+    saving,
+    error,
+    successMessage,
     toggleInterest,
     saveInterests,
     clearAllInterests,
   } = useInterests()
-
-  const {
-    availableGrades,
-    userGrade,
-    loading: gradeLoading,
-    saving: gradeSaving,
-    error: gradeError,
-    successMessage: gradeSuccessMessage,
-    selectGrade,
-  } = useGrade()
 
   const handleSignOut = async () => {
     await signOut()
@@ -99,10 +87,6 @@ export default function Dashboard() {
     if (result.success) {
       // Success message is handled by the hook
     }
-  }
-
-  const handleGradeSelect = async (gradeId: number) => {
-    await selectGrade(gradeId)
   }
 
   return (
@@ -202,7 +186,7 @@ export default function Dashboard() {
                 {activeTab === "voice" && "Practice with voice-guided lessons"}
                 {activeTab === "check" && "Verify your work and get feedback"}
                 {activeTab === "profile" && "Manage your account information"}
-                {activeTab === "settings" && "Customize your preferences and account settings"}
+                {activeTab === "settings" && "Customize your preferences"}
               </p>
             </div>
           </div>
@@ -263,15 +247,15 @@ export default function Dashboard() {
               </div>
 
               {/* Error/Success Messages */}
-              {interestsError && (
+              {error && (
                 <Alert className="mb-6 border-red-200 bg-red-50">
-                  <AlertDescription className="text-red-800">{interestsError}</AlertDescription>
+                  <AlertDescription className="text-red-800">{error}</AlertDescription>
                 </Alert>
               )}
 
-              {interestsSuccessMessage && (
+              {successMessage && (
                 <Alert className="mb-6 border-green-200 bg-green-50">
-                  <AlertDescription className="text-green-800">{interestsSuccessMessage}</AlertDescription>
+                  <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
                 </Alert>
               )}
 
@@ -290,7 +274,7 @@ export default function Dashboard() {
                       <button
                         key={interest.id}
                         onClick={() => toggleInterest(interest.id)}
-                        disabled={interestsSaving}
+                        disabled={saving}
                         className={`p-4 rounded-xl border-2 text-left transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
                           selectedInterests.includes(interest.id)
                             ? "border-purple-500 bg-purple-50"
@@ -336,7 +320,7 @@ export default function Dashboard() {
                               <span>{interest?.name}</span>
                               <button
                                 onClick={() => toggleInterest(interestId)}
-                                disabled={interestsSaving}
+                                disabled={saving}
                                 className="hover:bg-purple-200 rounded-full p-0.5 disabled:opacity-50"
                               >
                                 <span className="text-xs">×</span>
@@ -348,10 +332,10 @@ export default function Dashboard() {
                       <div className="flex gap-3">
                         <Button
                           onClick={handleSaveInterests}
-                          disabled={interestsSaving}
+                          disabled={saving}
                           className="bg-purple-500 hover:bg-purple-600"
                         >
-                          {interestsSaving ? (
+                          {saving ? (
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Saving...
@@ -360,7 +344,7 @@ export default function Dashboard() {
                             "Save Preferences"
                           )}
                         </Button>
-                        <Button variant="outline" onClick={clearAllInterests} disabled={interestsSaving}>
+                        <Button variant="outline" onClick={clearAllInterests} disabled={saving}>
                           Clear All
                         </Button>
                       </div>
@@ -382,184 +366,20 @@ export default function Dashboard() {
             </div>
           )}
 
-          {activeTab === "settings" && (
-            <div className="max-w-4xl space-y-8">
-              {/* Grade Selection Section */}
-              <div className="bg-white rounded-xl p-6 border border-gray-200">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <GraduationCap className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-800">Grade Level</h2>
-                    <p className="text-gray-600">Select your current grade level to get appropriate course content</p>
-                  </div>
-                </div>
-
-                {/* Error/Success Messages */}
-                {gradeError && (
-                  <Alert className="mb-6 border-red-200 bg-red-50">
-                    <AlertDescription className="text-red-800">{gradeError}</AlertDescription>
-                  </Alert>
-                )}
-
-                {gradeSuccessMessage && (
-                  <Alert className="mb-6 border-green-200 bg-green-50">
-                    <AlertDescription className="text-green-800">{gradeSuccessMessage}</AlertDescription>
-                  </Alert>
-                )}
-
-                {/* Loading State */}
-                {gradeLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="text-center">
-                      <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-4" />
-                      <p className="text-gray-600">Loading grade options...</p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {/* Current Grade Display */}
-                    {userGrade && (
-                      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">{userGrade.grade}</span>
-                          </div>
-                          <div>
-                            <p className="font-medium text-blue-800">Current Grade: Grade {userGrade.grade}</p>
-                            <p className="text-sm text-blue-600">
-                              Selected on {new Date(userGrade.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Grade Selection */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {availableGrades.map((grade) => (
-                        <button
-                          key={grade.grade_id}
-                          onClick={() => handleGradeSelect(grade.grade_id)}
-                          disabled={gradeSaving}
-                          className={`p-6 rounded-xl border-2 text-center transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
-                            userGrade?.grade_id === grade.grade_id
-                              ? "border-blue-500 bg-blue-50"
-                              : "border-gray-200 bg-white hover:border-gray-300"
-                          }`}
-                        >
-                          <div className="flex flex-col items-center gap-3">
-                            <div
-                              className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${
-                                userGrade?.grade_id === grade.grade_id
-                                  ? "bg-blue-500 text-white"
-                                  : "bg-gray-100 text-gray-600"
-                              }`}
-                            >
-                              {grade.grade}
-                            </div>
-                            <div>
-                              <h3
-                                className={`font-semibold ${
-                                  userGrade?.grade_id === grade.grade_id ? "text-blue-700" : "text-gray-800"
-                                }`}
-                              >
-                                Grade {grade.grade}
-                              </h3>
-                              {userGrade?.grade_id === grade.grade_id && (
-                                <div className="flex items-center justify-center mt-2">
-                                  <CheckCircle className="w-5 h-5 text-blue-500" />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-
-                    {gradeSaving && (
-                      <div className="mt-4 flex items-center justify-center">
-                        <div className="flex items-center gap-2 text-blue-600">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span className="text-sm">Saving your grade selection...</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {!userGrade && !gradeLoading && (
-                      <div className="mt-6 text-center py-4">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <GraduationCap className="w-8 h-8 text-gray-400" />
-                        </div>
-                        <p className="text-gray-500">Select your grade level to get started</p>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {/* Account Information Section */}
-              <div className="bg-white rounded-xl p-6 border border-gray-200">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <User className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-800">Account Information</h2>
-                    <p className="text-gray-600">Your account details and preferences</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <label className="text-sm font-medium text-gray-600">First Name</label>
-                      <p className="text-gray-800 font-medium">{user?.user_metadata?.first_name || "Not provided"}</p>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <label className="text-sm font-medium text-gray-600">Last Name</label>
-                      <p className="text-gray-800 font-medium">{user?.user_metadata?.last_name || "Not provided"}</p>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <label className="text-sm font-medium text-gray-600">Email Address</label>
-                    <p className="text-gray-800 font-medium">{user?.email}</p>
-                  </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <label className="text-sm font-medium text-gray-600">Account Created</label>
-                    <p className="text-gray-800 font-medium">
-                      {user?.created_at
-                        ? new Date(user.created_at).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })
-                        : "Unknown"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {activeTab === "testing" && <PersonalizedLesson />}
 
           {/* Placeholder for other tabs */}
-          {activeTab !== "courses" &&
-            activeTab !== "interests" &&
-            activeTab !== "testing" &&
-            activeTab !== "settings" && (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">📚</span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Coming Soon</h3>
-                  <p className="text-gray-600">This section is under development</p>
+          {activeTab !== "courses" && activeTab !== "interests" && activeTab !== "testing" && (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">📚</span>
                 </div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Coming Soon</h3>
+                <p className="text-gray-600">This section is under development</p>
               </div>
-            )}
+            </div>
+          )}
         </main>
       </div>
     </div>
