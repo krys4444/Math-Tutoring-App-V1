@@ -1,45 +1,30 @@
-# Math Tutoring App
+# Landing page update
 
-A personalized AI-powered math tutoring application built with Next.js, Supabase, and OpenAI.
+*Automatically synced with your [v0.dev](https://v0.dev) deployments*
 
-## Features
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/krystians-projects-486745f8/v0-landing-page-update)
+[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/qr2mMDiaw5q)
 
-- User authentication with Supabase
-- Grade-level selection during signup
-- Personalized learning experiences
-- AI-powered tutoring
-- Progress tracking
+## Overview
 
-## Getting Started
+This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
+Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
 
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Set up environment variables
-4. Run the development server: `npm run dev`
+## Deployment
 
-## Environment Variables
+Your project is live at:
 
-Create a `.env.local` file with:
+**[https://vercel.com/krystians-projects-486745f8/v0-landing-page-update](https://vercel.com/krystians-projects-486745f8/v0-landing-page-update)**
 
-\`\`\`
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key
-\`\`\`
+## Build your app
 
-## Database Setup
+Continue building your app on:
 
-Run the SQL scripts in the `scripts/` folder to set up the database tables:
+**[https://v0.dev/chat/projects/qr2mMDiaw5q](https://v0.dev/chat/projects/qr2mMDiaw5q)**
 
-1. `create-grades-table.sql`
-2. `create-user-grade-table.sql`
-3. Other existing scripts for user interests
+## How It Works
 
-## Tech Stack
-
-- Next.js 14
-- TypeScript
-- Supabase (Authentication & Database)
-- Tailwind CSS
-- shadcn/ui components
-- OpenAI API
+1. Create and modify your project using [v0.dev](https://v0.dev)
+2. Deploy your chats from the v0 interface
+3. Changes are automatically pushed to this repository
+4. Vercel deploys the latest version from this repository

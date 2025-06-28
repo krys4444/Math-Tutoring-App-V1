@@ -1,92 +1,103 @@
-// WARNING: This exposes the API key on the client side
-// In production, move this to a server-side API route
+import { getUserInterestsWithDetails } from "./interests-service"
+
 const OPENAI_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY
 
-export interface LessonRequest {
-  grade: string
-  interests: string[]
-  difficulty: "beginner" | "intermediate" | "advanced"
+export interface PersonalizedLessonResponse {
+  selectedInterest: string
+  connection: string
+  error?: string
 }
 
-export interface LessonResponse {
-  topic: string
-  explanation: string
-  examples: string[]
-  practice_problems: {
-    question: string
-    answer: string
-    explanation: string
-  }[]
-}
-
-export const openaiService = {
-  async generatePersonalizedLesson(request: LessonRequest): Promise<LessonResponse> {
+export async function generatePersonalizedLesson(): Promise<PersonalizedLessonResponse> {
+  try {
+    // Check if API key is available
     if (!OPENAI_API_KEY) {
-      throw new Error("OpenAI API key not configured")
+      return {
+        selectedInterest: "",
+        connection: "",
+        error: "OpenAI API key not configured. Please check your environment variables.",
+      }
     }
 
-    const prompt = `Create a personalized math lesson for a ${request.grade} student with interests in ${request.interests.join(", ")}. 
-    The difficulty level should be ${request.difficulty}.
-    
-    Please provide:
-    1. A relevant topic that connects to their interests
-    2. A clear explanation of the concept
-    3. 2-3 practical examples
-    4. 3 practice problems with solutions and explanations
-    
-    Format the response as JSON with the following structure:
-    {
-      "topic": "string",
-      "explanation": "string", 
-      "examples": ["string"],
-      "practice_problems": [
-        {
-          "question": "string",
-          "answer": "string", 
-          "explanation": "string"
-        }
-      ]
-    }`
+    // Get user's interests from Supabase
+    const { data: userInterests, error: interestsError } = await getUserInterestsWithDetails()
 
-    try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [
-            {
-              role: "system",
-              content: "You are a helpful math tutor that creates personalized lessons.",
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          temperature: 0.7,
-          max_tokens: 1500,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.statusText}`)
+    if (interestsError) {
+      return {
+        selectedInterest: "",
+        connection: "",
+        error: `Failed to load user interests: ${interestsError.message}`,
       }
-
-      const data = await response.json()
-      const content = data.choices[0]?.message?.content
-
-      if (!content) {
-        throw new Error("No content received from OpenAI")
-      }
-
-      return JSON.parse(content)
-    } catch (error) {
-      console.error("Error generating lesson:", error)
-      throw error
     }
-  },
+
+    if (!userInterests || userInterests.length === 0) {
+      return {
+        selectedInterest: "",
+        connection: "",
+        error: "No interests found. Please select some interests first.",
+      }
+    }
+
+    // Format interests for the prompt
+    const interestsList = userInterests.map((interest) => interest.interest_name).join(", ")
+
+    const lessonConcept = `Lesson Concept: Introduction to Quadratic Functions
+A quadratic function is any function that can be written in the form f(x) = ax² + bx + c, where a, b, and c are constants and a ≠ 0, and its graph creates a U-shaped curve called a parabola. The coefficient 'a' determines whether the parabola opens upward (when a > 0) or downward (when a < 0), while the vertex represents the minimum point (if opening upward) or maximum point (if opening downward) of the function. You can find the x-coordinate of the vertex using the formula x = -b/(2a), and substituting this value back into the original equation gives you the y-coordinate of the vertex.`
+
+    const prompt = `This student is interested in ${interestsList}. Select one of these interests to describe how the interest is related to the lesson concept: ${lessonConcept}`
+
+    // Call OpenAI API
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a helpful math tutor who connects mathematical concepts to students' personal interests. Always start your response by clearly stating which interest you selected, then explain the connection in an engaging and educational way.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        max_tokens: 500,
+        temperature: 0.7,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      return {
+        selectedInterest: "",
+        connection: "",
+        error: `OpenAI API error: ${errorData.error?.message || response.statusText}`,
+      }
+    }
+
+    const data = await response.json()
+    const aiResponse = data.choices[0]?.message?.content || ""
+
+    // Try to extract the selected interest from the response
+    const selectedInterest =
+      userInterests.find((interest) => aiResponse.toLowerCase().includes(interest.interest_name.toLowerCase()))
+        ?.interest_name || "Unknown"
+
+    return {
+      selectedInterest,
+      connection: aiResponse,
+    }
+  } catch (error) {
+    console.error("Error generating personalized lesson:", error)
+    return {
+      selectedInterest: "",
+      connection: "",
+      error: `Unexpected error: ${error instanceof Error ? error.message : "Unknown error"}`,
+    }
+  }
 }

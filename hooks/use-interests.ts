@@ -1,69 +1,92 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { interestsService, type Interest } from "@/lib/interests-service"
+import { saveUserInterests, loadUserInterests, type Interest } from "@/lib/interests-service"
+import { useAuth } from "./use-auth"
 
 export function useInterests() {
-  const [interests, setInterests] = useState<Interest[]>([])
+  const { user } = useAuth()
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
+  // Load interests when user is available
   useEffect(() => {
-    const fetchUserInterests = async () => {
-      try {
-        setLoading(true)
-        const { data, error } = await interestsService.getUserInterests()
+    if (user) {
+      loadInterests()
+    } else {
+      setSelectedInterests([])
+      setLoading(false)
+    }
+  }, [user])
 
-        if (error) {
-          setError(error.message)
-        } else {
-          setInterests(data || [])
-        }
-      } catch (err) {
-        setError("Failed to fetch interests")
-      } finally {
-        setLoading(false)
-      }
+  const loadInterests = async () => {
+    setLoading(true)
+    setError(null)
+
+    const { data, error: loadError } = await loadUserInterests()
+
+    if (loadError) {
+      setError(loadError.message)
+    } else {
+      setSelectedInterests(data || [])
     }
 
-    fetchUserInterests()
-  }, [])
-
-  const addInterest = async (interestName: string) => {
-    try {
-      const { error } = await interestsService.addUserInterest(interestName)
-      if (error) {
-        throw new Error(error.message)
-      }
-
-      // Refresh interests
-      const { data } = await interestsService.getUserInterests()
-      setInterests(data || [])
-    } catch (err) {
-      throw err
-    }
+    setLoading(false)
   }
 
-  const removeInterest = async (interestId: number) => {
-    try {
-      const { error } = await interestsService.removeUserInterest(interestId)
-      if (error) {
-        throw new Error(error.message)
-      }
+  const toggleInterest = (interestId: string) => {
+    setSelectedInterests((prev) =>
+      prev.includes(interestId) ? prev.filter((id) => id !== interestId) : [...prev, interestId],
+    )
+    // Clear any previous messages when user makes changes
+    setError(null)
+    setSuccessMessage(null)
+  }
 
-      // Refresh interests
-      const { data } = await interestsService.getUserInterests()
-      setInterests(data || [])
-    } catch (err) {
-      throw err
+  const saveInterests = async (availableInterests: Interest[]) => {
+    if (!user) {
+      setError("User not authenticated")
+      return { success: false }
     }
+
+    setSaving(true)
+    setError(null)
+    setSuccessMessage(null)
+
+    // Get full interest objects for selected interests
+    const interestsToSave = availableInterests.filter((interest) => selectedInterests.includes(interest.id))
+
+    const { error: saveError } = await saveUserInterests(interestsToSave)
+
+    if (saveError) {
+      setError(saveError.message)
+      setSaving(false)
+      return { success: false }
+    }
+
+    setSuccessMessage(`Successfully saved ${interestsToSave.length} interests!`)
+    setSaving(false)
+    return { success: true }
+  }
+
+  const clearAllInterests = () => {
+    setSelectedInterests([])
+    setError(null)
+    setSuccessMessage(null)
   }
 
   return {
-    interests,
+    selectedInterests,
     loading,
+    saving,
     error,
-    addInterest,
-    removeInterest,
+    successMessage,
+    toggleInterest,
+    saveInterests,
+    clearAllInterests,
+    loadInterests,
   }
 }

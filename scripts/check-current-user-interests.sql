@@ -1,9 +1,9 @@
--- Check current user's interests
+-- Check interests for the currently authenticated user
+-- Note: This will only work if you're authenticated in Supabase
 SELECT 
-    ui.id,
-    ui.interest_name,
-    ui.created_at,
-    ui.user_id
-FROM user_interests ui
-WHERE ui.user_id = auth.uid()
-ORDER BY ui.created_at DESC;
+    interest_id,
+    interest_name,
+    created_at
+FROM user_interests 
+WHERE user_id = auth.uid()
+ORDER BY created_at;
