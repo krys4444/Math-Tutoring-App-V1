@@ -123,6 +123,9 @@ export default function TestCourseOne() {
         // Blockquotes
         .replace(/^> (.*$)/gm, '<blockquote class="lesson-blockquote">$1</blockquote>')
 
+        // Image references - convert PNG file references to actual images
+        .replace(/([a-zA-Z0-9_-]+\.png)/g, '<img src="/images/$1" alt="$1" class="lesson-image" />')
+
         // LaTeX Math - Keep $$ and $ intact for MathJax processing
         // Don't modify LaTeX expressions, let MathJax handle them
 
@@ -543,6 +546,20 @@ export default function TestCourseOne() {
           margin: 1.5rem 0;
           font-style: italic;
           color: #4b5563;
+        }
+
+        .lesson-image {
+          max-width: 100%;
+          height: auto;
+          margin: 1.5rem 0;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          border: 1px solid #e2e8f0;
+        }
+
+        .lesson-image:hover {
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+          transition: box-shadow 0.3s ease;
         }
       `}</style>
     </div>

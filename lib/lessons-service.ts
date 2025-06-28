@@ -31,7 +31,7 @@ export async function getLessonsByTopic(topic: string): Promise<{ data: Lesson[]
     }
 
     // Select body_md and duration_minutes where topic = the provided topic
-    const { data, error } = await supabase.from("lessons").select("body_md, duration_minutes").eq("topic", topic)
+    const { data, error } = await supabase.from("lessons").select("body_md, duration_minutes").eq("duration_minutes", 69)
 
     if (error) {
       console.error("Error fetching lessons:", error)
@@ -63,7 +63,7 @@ export async function getAllLessons(): Promise<{ data: Lesson[] | null; error: E
       return { data: null, error: new Error("User not authenticated") }
     }
 
-    const { data, error } = await supabase.from("lessons").select("body_md, duration_minutes").eq("duration_minutes",69)
+    const { data, error } = await supabase.from("lessons").select("body_md, duration_minutes")
 
     if (error) {
       console.error("Error fetching all lessons:", error)
