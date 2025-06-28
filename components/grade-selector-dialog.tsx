@@ -85,7 +85,7 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
     <>
       <Button variant="outline" className="flex items-center gap-2 bg-transparent" onClick={() => setIsOpen(true)}>
         <GraduationCap className="w-4 h-4" />
-        {currentGrade?.grades?.grade_name || "Select Grade"}
+        {currentGrade?.grades?.grade ? `Grade ${currentGrade.grades.grade}` : "Select Grade"}
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -105,10 +105,7 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
                   <CheckCircle className="w-4 h-4 text-purple-600" />
                   <span className="text-sm font-medium text-purple-800">Current Grade</span>
                 </div>
-                <p className="text-purple-700 font-semibold">{currentGrade.grades.grade_name}</p>
-                {currentGrade.grades.description && (
-                  <p className="text-sm text-purple-600 mt-1">{currentGrade.grades.description}</p>
-                )}
+                <p className="text-purple-700 font-semibold">Grade {currentGrade.grades.grade}</p>
               </div>
             )}
 
