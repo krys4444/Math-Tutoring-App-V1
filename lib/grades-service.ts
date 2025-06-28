@@ -30,19 +30,20 @@ export const gradeService = {
       return { data: null, error: { message: "User not authenticated" } }
     }
 
-    // Use upsert to handle both insert and update cases
+    // First, delete any existing grade for this user
+    const { error: deleteError } = await supabase.from("user_grade").delete().eq("user_id", user.id)
+
+    if (deleteError) {
+      return { data: null, error: deleteError }
+    }
+
+    // Then insert the new grade
     const { data, error } = await supabase
       .from("user_grade")
-      .upsert(
-        {
-          user_id: user.id,
-          grade_id: grade_id,
-        },
-        {
-          onConflict: "user_id",
-          ignoreDuplicates: false,
-        },
-      )
+      .insert({
+        user_id: user.id,
+        grade_id: grade_id,
+      })
       .select()
 
     return { data, error }
