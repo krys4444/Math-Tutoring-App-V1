@@ -155,7 +155,7 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
                                 {grade.grade_name}
                               </h3>
                               {grade.description && <p className="text-sm text-gray-600">{grade.description}</p>}
-                              <p className="text-xs text-gray-500 mt-1">Level {grade.grade_level}</p>
+                              <p className="text-xs text-gray-500 mt-1">Level {grade.grade}</p>
                             </div>
                             {isSelected && <CheckCircle className="w-5 h-5 text-purple-500 flex-shrink-0 ml-2" />}
                           </div>
