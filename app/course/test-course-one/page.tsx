@@ -14,6 +14,48 @@ export default function TestCourseOne() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Load MathJax when component mounts
+  useEffect(() => {
+    // Load MathJax script
+    const script = document.createElement("script")
+    script.src = "https://polyfill.io/v3/polyfill.min.js?features=es6"
+    document.head.appendChild(script)
+
+    const mathJaxScript = document.createElement("script")
+    mathJaxScript.id = "MathJax-script"
+    mathJaxScript.async = true
+    mathJaxScript.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    document.head.appendChild(mathJaxScript)
+
+    // Configure MathJax
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"]],
+        displayMath: [["$$", "$$"]],
+        processEscapes: true,
+        processEnvironments: true,
+      },
+      options: {
+        skipHtmlTags: ["script", "noscript", "style", "textarea", "pre"],
+      },
+    }
+
+    return () => {
+      // Cleanup scripts on unmount
+      const existingScript = document.getElementById("MathJax-script")
+      if (existingScript) {
+        existingScript.remove()
+      }
+    }
+  }, [])
+
+  // Re-render MathJax when lessons change
+  useEffect(() => {
+    if (lessons.length > 0 && window.MathJax) {
+      window.MathJax.typesetPromise().catch((err) => console.log("MathJax error:", err))
+    }
+  }, [lessons])
+
   // Fetch lessons on component mount, but only if user is authenticated
   useEffect(() => {
     const fetchLessons = async () => {
@@ -43,7 +85,7 @@ export default function TestCourseOne() {
     fetchLessons()
   }, [user, authLoading])
 
-  // Enhanced markdown renderer with better formatting
+  // Enhanced markdown renderer with LaTeX support
   const renderMarkdown = (markdown: string) => {
     return (
       markdown
@@ -68,9 +110,8 @@ export default function TestCourseOne() {
         // Blockquotes
         .replace(/^> (.*$)/gm, '<blockquote class="lesson-blockquote">$1</blockquote>')
 
-        // LaTeX-style math (basic support)
-        .replace(/\$\$(.*?)\$\$/g, '<div class="lesson-math-block">$1</div>')
-        .replace(/\$(.*?)\$/g, '<span class="lesson-math-inline">$1</span>')
+        // LaTeX Math - Keep $$ and $ intact for MathJax processing
+        // Don't modify LaTeX expressions, let MathJax handle them
 
         // Line breaks and paragraphs
         .replace(/\n\n/g, '</p><p class="lesson-paragraph">')
@@ -476,26 +517,6 @@ export default function TestCourseOne() {
           margin: 1.5rem 0;
           font-style: italic;
           color: #4b5563;
-        }
-        
-        .lesson-math-block {
-          background: #fef3c7;
-          border: 1px solid #f59e0b;
-          border-radius: 8px;
-          padding: 1rem;
-          margin: 1.5rem 0;
-          text-align: center;
-          font-family: 'Times New Roman', serif;
-          font-size: 1.125rem;
-          color: #92400e;
-        }
-        
-        .lesson-math-inline {
-          background: #fef3c7;
-          color: #92400e;
-          padding: 0.125rem 0.375rem;
-          border-radius: 4px;
-          font-family: 'Times New Roman', serif;
         }
       `}</style>
     </div>
