@@ -20,6 +20,7 @@ import {
 import { useAuth } from "@/hooks/use-auth"
 import { useInterests } from "@/hooks/use-interests"
 import { PersonalizedLesson } from "@/components/personalized-lesson"
+import { GradeSelectorDialog } from "@/components/grade-selector-dialog"
 
 const sidebarItems = [
   {
@@ -188,6 +189,9 @@ export default function Dashboard() {
                 {activeTab === "profile" && "Manage your account information"}
                 {activeTab === "settings" && "Customize your preferences"}
               </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <GradeSelectorDialog onGradeSelected={(grade) => console.log("Grade selected:", grade)} />
             </div>
           </div>
         </header>
