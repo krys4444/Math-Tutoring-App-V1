@@ -64,8 +64,8 @@ export async function getAllLessons(): Promise<{ data: Lesson[] | null; error: E
 
     const { data, error } = await supabase
       .from("lessons")
-      .select("id, topic, body_md, title, description, order_index, created_at, updated_at")
-      .order("order_index", { ascending: true })
+      .select("body_md")
+      .eq("topic", Percentages)
 
     if (error) {
       console.error("Error fetching all lessons:", error)
