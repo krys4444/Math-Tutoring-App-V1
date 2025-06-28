@@ -7,6 +7,7 @@ import { PersonalizedLesson } from "@/components/personalized-lesson"
 import { useAuth } from "@/hooks/use-auth"
 import { useInterests } from "@/hooks/use-interests"
 import { BookOpen, Calculator, TrendingUp, User, LogOut } from "lucide-react"
+import { GradeSelectorDialog } from "@/components/grade-selector-dialog"
 
 export default function Dashboard() {
   const { user, signOut } = useAuth()
@@ -119,7 +120,15 @@ export default function Dashboard() {
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="font-medium text-gray-900">Grade Level</h4>
-                    <p className="text-sm text-gray-600">Grade 10 Mathematics</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-gray-600">Grade 10 Mathematics</p>
+                      <GradeSelectorDialog
+                        onGradeUpdated={() => {
+                          // Optionally refresh page data when grade is updated
+                          console.log("Grade updated!")
+                        }}
+                      />
+                    </div>
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900">Learning Interests</h4>
