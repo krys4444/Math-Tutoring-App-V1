@@ -95,8 +95,8 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
               <GraduationCap className="w-5 h-5 text-purple-500" />
               Select Your Grade Level
             </DialogTitle>
-            <div className="text-xs text-gray-500 mt-2">
-              Debug - User: {user ? JSON.stringify(user, null, 2) : "No user found"}
+            <div className="text-xs text-gray-500 mt-2 whitespace-pre-wrap max-h-40 overflow-y-auto bg-gray-100 p-2 rounded">
+              Debug - User Object: {user ? JSON.stringify(user, null, 2) : "No user found"}
             </div>
           </DialogHeader>
 
