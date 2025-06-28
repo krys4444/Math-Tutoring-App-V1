@@ -29,6 +29,7 @@ export async function getLessonsByTopic(topic: string): Promise<{ data: Lesson[]
       return { data: null, error: new Error("User not authenticated") }
     }
 
+    // Keep the original query logic from lines 31-35
     const { data, error } = await supabase
       .from("lessons")
       .select("id, topic, body_md, title, description, order_index, created_at, updated_at")
