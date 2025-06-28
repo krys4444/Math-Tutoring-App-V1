@@ -8,6 +8,19 @@ import { ArrowLeft, BookOpen, Clock, Users, Globe, Loader2, AlertCircle } from "
 import { getLessonsByTopic, type Lesson } from "@/lib/lessons-service"
 import { useAuth } from "@/hooks/use-auth"
 
+// Helper function to format duration
+const formatDuration = (minutes: number) => {
+  if (minutes < 60) {
+    return `${minutes} min`
+  }
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  if (remainingMinutes === 0) {
+    return `${hours}h`
+  }
+  return `${hours}h ${remainingMinutes}m`
+}
+
 export default function TestCourseOne() {
   const { user, loading: authLoading } = useAuth()
   const [lessons, setLessons] = useState<Lesson[]>([])
@@ -199,7 +212,10 @@ export default function TestCourseOne() {
                     {lessons.length} Lessons
                   </span>
                   <span className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />6 Hours
+                    <Clock className="w-4 h-4" />
+                    {lessons.length > 0 && lessons.some((l) => l.duration_minutes)
+                      ? formatDuration(lessons.reduce((total, lesson) => total + (lesson.duration_minutes || 0), 0))
+                      : "6 Hours"}
                   </span>
                   <span className="flex items-center gap-2">
                     <Users className="w-4 h-4" />
@@ -264,6 +280,12 @@ export default function TestCourseOne() {
                           </div>
                           <div>
                             <CardTitle className="text-2xl text-gray-800">{lesson.title || lesson.topic}</CardTitle>
+                            {lesson.duration_minutes && (
+                              <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                                <Clock className="w-4 h-4" />
+                                <span>{formatDuration(lesson.duration_minutes)}</span>
+                              </div>
+                            )}
                             {lesson.description && <p className="text-gray-600 mt-2">{lesson.description}</p>}
                           </div>
                         </div>
@@ -342,7 +364,11 @@ export default function TestCourseOne() {
                       <Clock className="w-5 h-5 text-purple-500" />
                       <div>
                         <p className="font-medium text-gray-800">Duration</p>
-                        <p className="text-sm text-gray-600">6 hours total</p>
+                        <p className="text-sm text-gray-600">
+                          {lessons.length > 0 && lessons.some((l) => l.duration_minutes)
+                            ? `${formatDuration(lessons.reduce((total, lesson) => total + (lesson.duration_minutes || 0), 0))} total`
+                            : "6 hours total"}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
