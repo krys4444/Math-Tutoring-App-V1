@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2, GraduationCap, CheckCircle } from "lucide-react"
 import { gradeService, type Grade } from "@/lib/grades-service"
+import { supabase } from "@/lib/supabase-client"
 
 interface GradeSelectorDialogProps {
   onGradeSelected?: (grade: Grade) => void
@@ -20,6 +21,7 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [user, setUser] = useState<any>(null)
 
   // Load grades and current user grade when dialog opens
   useEffect(() => {
@@ -33,6 +35,12 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
     setError(null)
 
     try {
+      // Get current user for debugging
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser()
+      setUser(currentUser)
+
       // Load available grades
       const { data: gradesData, error: gradesError } = await gradeService.getGrades()
       if (gradesError) {
@@ -93,6 +101,7 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
               <GraduationCap className="w-5 h-5 text-purple-500" />
               Select Your Grade Level
             </DialogTitle>
+            <div className="text-xs text-gray-500 mt-2">Debug - User ID: {user?.id || "No user found"}</div>
           </DialogHeader>
 
           <div className="space-y-4">
