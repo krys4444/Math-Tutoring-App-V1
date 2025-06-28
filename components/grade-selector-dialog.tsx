@@ -152,7 +152,7 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <h3 className={`font-semibold mb-1 ${isSelected ? "text-purple-700" : "text-gray-800"}`}>
-                                {grade.grade_name}
+                                {grade.grade}
                               </h3>
                               {grade.description && <p className="text-sm text-gray-600">{grade.description}</p>}
                               <p className="text-xs text-gray-500 mt-1">Level {grade.grade}</p>
