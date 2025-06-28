@@ -131,11 +131,9 @@ export default function TestCourseOne() {
         // LaTeX Math - Keep $$ and $ intact for MathJax processing
         // Don't modify LaTeX expressions, let MathJax handle them
 
-        // Line breaks and paragraphs
+        // Line breaks, paragraphs, and wrapping
         .replace(/\n\n/g, '</p><p class="lesson-paragraph">')
         .replace(/\n/g, "<br>")
-
-        // Wrap in paragraph if doesn't start with heading
         .replace(/^(?!<h[1-6]|<ul|<ol|<blockquote)/, '<p class="lesson-paragraph">')
     )
   }
