@@ -14,7 +14,7 @@ interface GradeSelectorDialogProps {
 }
 
 export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProps) {
-  const { user } = useAuth() // Use the existing auth hook
+  const { user, loading: authLoading } = useAuth() // Get loading state too
   const [isOpen, setIsOpen] = useState(false)
   const [grades, setGrades] = useState<Grade[]>([])
   const [currentGrade, setCurrentGrade] = useState<any>(null)
@@ -22,6 +22,14 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  // Debug logging
+  useEffect(() => {
+    console.log("Auth loading:", authLoading)
+    console.log("User object:", user)
+    console.log("User type:", typeof user)
+    console.log("User keys:", user ? Object.keys(user) : "No user")
+  }, [user, authLoading])
 
   // Load grades and current user grade when dialog opens
   useEffect(() => {
@@ -96,7 +104,11 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
               Select Your Grade Level
             </DialogTitle>
             <div className="text-xs text-gray-500 mt-2 whitespace-pre-wrap max-h-40 overflow-y-auto bg-gray-100 p-2 rounded">
-              Debug - User Object: {user ? JSON.stringify(user, null, 2) : "No user found"}
+              Debug Info:
+              {"\n"}Auth Loading: {authLoading ? "true" : "false"}
+              {"\n"}User Exists: {user ? "true" : "false"}
+              {"\n"}User Type: {typeof user}
+              {"\n"}User Object: {user ? JSON.stringify(user, null, 2) : "No user found"}
             </div>
           </DialogHeader>
 
