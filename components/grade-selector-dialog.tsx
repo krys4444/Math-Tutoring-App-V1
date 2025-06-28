@@ -96,7 +96,7 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
               Select Your Grade Level
             </DialogTitle>
             <div className="text-xs text-gray-500 mt-2">
-              Debug - User: {user.id ? JSON.stringify(user, null, 2) : "No user found"}
+              Debug - User: {user ? JSON.stringify(user, null, 2) : "No user found"}
             </div>
           </DialogHeader>
 
