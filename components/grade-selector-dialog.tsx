@@ -60,7 +60,7 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
     setError(null)
     setSuccessMessage(null)
 
-    const { data, error: saveError } = await gradeService.saveUserGrade(grade.id)
+    const { data, error: saveError } = await gradeService.saveUserGrade(grade.grade_id)
 
     if (saveError) {
       setError(`Failed to save grade: ${saveError.message}`)
@@ -135,10 +135,10 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
               /* Grade Options */
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
                 {grades.map((grade) => {
-                  const isSelected = currentGrade?.grades?.id === grade.id
+                  const isSelected = currentGrade?.grades?.id === grade.grade_id
                   return (
                     <Card
-                      key={grade.id}
+                      key={grade.grade_id}
                       className={`cursor-pointer transition-all hover:shadow-md ${
                         isSelected ? "border-purple-500 bg-purple-50" : "border-gray-200 hover:border-gray-300"
                       }`}
