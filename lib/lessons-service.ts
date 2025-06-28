@@ -64,7 +64,7 @@ export async function getAllLessons(): Promise<{ data: Lesson[] | null; error: E
 
     const { data, error } = await supabase
       .from("lessons")
-      .select("body_md")
+      .select("body_md, duration_minutes, title")
       .eq("topic", Percentages)
 
     if (error) {
