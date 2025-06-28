@@ -29,12 +29,8 @@ export async function getLessonsByTopic(topic: string): Promise<{ data: Lesson[]
       return { data: null, error: new Error("User not authenticated") }
     }
 
-    // Keep the original query logic from lines 31-35
-    const { data, error } = await supabase
-      .from("lessons")
-      .select("id, topic, body_md, title, description, order_index, created_at, updated_at")
-      .eq("topic", topic)
-      .order("order_index", { ascending: true })
+    // Select only body_md where topic = Percentages
+    const { data, error } = await supabase.from("lessons").select("body_md").eq("topic", topic)
 
     if (error) {
       console.error("Error fetching lessons:", error)
