@@ -123,7 +123,9 @@ export default function TestCourseOne() {
         // Blockquotes
         .replace(/^> (.*$)/gm, '<blockquote class="lesson-blockquote">$1</blockquote>')
 
-        // Image references - convert PNG file references to actual images
+        // Image references - convert HTTP URLs to images first
+        .replace(/(https?:\/\/[^\s]+)/g, '<img src="$1" alt="Image" class="lesson-image" />')
+        // Then convert PNG file references to actual images
         .replace(/([a-zA-Z0-9_-]+\.png)/g, '<img src="/images/$1" alt="$1" class="lesson-image" />')
 
         // LaTeX Math - Keep $$ and $ intact for MathJax processing
