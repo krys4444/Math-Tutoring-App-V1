@@ -198,171 +198,42 @@ export default function Dashboard() {
             <div className="max-w-4xl">
               <div className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-800 mb-2">Available Courses</h2>
-                <p className="text-gray-600">
-                  Start your mathematical journey with our personalized courses designed around your interests.
-                </p>
+                <p className="text-gray-600">Start your mathematical journey with our available courses.</p>
               </div>
 
-              {/* Test Course Card */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="h-48 bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-2xl">📐</span>
-                      </div>
-                      <h3 className="text-lg font-semibold">Quadratic Functions</h3>
-                      <p className="text-sm opacity-90">Beginner Level</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Test Course One */}
+                <div className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <BookOpen className="w-6 h-6 text-purple-600" />
                     </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="mb-4">
-                      <h4 className="font-semibold text-gray-800 mb-2">Introduction to Quadratic Functions</h4>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Learn the fundamentals of quadratic functions, including graphing parabolas, finding vertices,
-                        and solving quadratic equations.
-                      </p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
-                        <span className="flex items-center gap-1">
-                          <span>⏱️</span>4 weeks
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span>📚</span>
-                          12 lessons
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span>🎯</span>
-                          Beginner
-                        </span>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-700">Progress</span>
-                        <span className="text-sm text-gray-500">0%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-purple-500 h-2 rounded-full" style={{ width: "0%" }}></div>
-                      </div>
-                      <Button className="w-full bg-purple-500 hover:bg-purple-600">Start Course</Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Coming Soon Card */}
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden opacity-75">
-                  <div className="h-48 bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-2xl">🔒</span>
-                      </div>
-                      <h3 className="text-lg font-semibold">Linear Algebra</h3>
-                      <p className="text-sm opacity-90">Intermediate Level</p>
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="mb-4">
-                      <h4 className="font-semibold text-gray-800 mb-2">Vectors and Matrices</h4>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Explore vector spaces, matrix operations, and linear transformations in this comprehensive
-                        course.
-                      </p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
-                        <span className="flex items-center gap-1">
-                          <span>⏱️</span>6 weeks
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span>📚</span>
-                          18 lessons
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span>🎯</span>
-                          Intermediate
-                        </span>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <Button variant="outline" className="w-full bg-transparent" disabled>
-                        Coming Soon
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Another Coming Soon Card */}
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden opacity-75">
-                  <div className="h-48 bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-2xl">🔒</span>
-                      </div>
-                      <h3 className="text-lg font-semibold">Calculus Basics</h3>
-                      <p className="text-sm opacity-90">Advanced Level</p>
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="mb-4">
-                      <h4 className="font-semibold text-gray-800 mb-2">Limits and Derivatives</h4>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Master the fundamentals of calculus including limits, derivatives, and basic integration
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">Test Course One</h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        A comprehensive introduction to fundamental mathematical concepts and problem-solving
                         techniques.
                       </p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
-                        <span className="flex items-center gap-1">
-                          <span>⏱️</span>8 weeks
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span>📚</span>
-                          24 lessons
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span>🎯</span>
-                          Advanced
-                        </span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <span>📚 12 Lessons</span>
+                          <span>•</span>
+                          <span>⏱️ 6 hours</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-3">
-                      <Button variant="outline" className="w-full bg-transparent" disabled>
-                        Coming Soon
+                      <Button
+                        className="w-full mt-4 bg-purple-500 hover:bg-purple-600"
+                        onClick={() => {
+                          // For now, just show an alert - you can implement navigation later
+                          alert("Entering Test Course One...")
+                        }}
+                      >
+                        Enter Course
                       </Button>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Recommended Based on Interests */}
-              {selectedInterests.length > 0 && (
-                <div className="bg-purple-50 rounded-xl p-6 border border-purple-200">
-                  <h3 className="font-semibold text-purple-800 mb-4 flex items-center gap-2">
-                    <Heart className="w-5 h-5" />
-                    Recommended for Your Interests
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedInterests.slice(0, 2).map((interestId) => {
-                      const interest = availableInterests.find((i) => i.id === interestId)
-                      return (
-                        <div key={interestId} className="bg-white rounded-lg p-4 border border-purple-200">
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className="text-xl">{interest?.icon}</span>
-                            <h4 className="font-medium text-gray-800">Math in {interest?.name}</h4>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-3">
-                            Discover how mathematics applies to {interest?.name.toLowerCase()} with real-world examples
-                            and practical applications.
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-purple-600 border-purple-300 hover:bg-purple-50 bg-transparent"
-                          >
-                            Coming Soon
-                          </Button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
