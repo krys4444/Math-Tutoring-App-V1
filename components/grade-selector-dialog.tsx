@@ -35,10 +35,11 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
     setError(null)
 
     try {
-      // Get current user for debugging
+      // Get current user for debugging using getSession (same as useAuth hook)
       const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser()
+        data: { session },
+      } = await supabase.auth.getSession()
+      const currentUser = session?.user
       setUser(currentUser)
 
       // Load available grades
