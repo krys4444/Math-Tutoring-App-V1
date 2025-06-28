@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useInterests } from "@/hooks/use-interests"
 import { PersonalizedLesson } from "@/components/personalized-lesson"
 import { GradeSelectorDialog } from "@/components/grade-selector-dialog"
+import { courseService, type Course } from "@/lib/courses-service"
 
 const sidebarItems = [
   {
@@ -79,6 +80,17 @@ export default function Dashboard() {
     clearAllInterests,
   } = useInterests()
 
+  const [courses, setCourses] = useState<Course[]>([])
+  const [coursesLoading, setCoursesLoading] = useState(false)
+  const [coursesError, setCoursesError] = useState<string | null>(null)
+
+  // Load courses when switching to courses tab
+  useEffect(() => {
+    if (activeTab === "courses") {
+      loadCourses()
+    }
+  }, [activeTab])
+
   const handleSignOut = async () => {
     await signOut()
   }
@@ -88,6 +100,21 @@ export default function Dashboard() {
     if (result.success) {
       // Success message is handled by the hook
     }
+  }
+
+  const loadCourses = async () => {
+    setCoursesLoading(true)
+    setCoursesError(null)
+
+    const { data, error } = await courseService.getCoursesForUserGrade()
+
+    if (error) {
+      setCoursesError(error.message)
+    } else {
+      setCourses(data || [])
+    }
+
+    setCoursesLoading(false)
   }
 
   return (
@@ -199,15 +226,96 @@ export default function Dashboard() {
         {/* Content Area */}
         <main className="flex-1 p-6">
           {activeTab === "courses" && (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <BookOpen className="w-8 h-8 text-purple-500" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">No Courses Yet</h3>
-                <p className="text-gray-600 mb-4">You haven't enrolled in any courses</p>
-                <Button className="bg-purple-500 hover:bg-purple-600">Browse Courses</Button>
+            <div className="max-w-6xl">
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">Available Courses</h2>
+                <p className="text-gray-600">
+                  Courses available for your selected grade level. Select a course to begin your learning journey.
+                </p>
               </div>
+
+              {/* Error Message */}
+              {coursesError && (
+                <Alert className="mb-6 border-red-200 bg-red-50">
+                  <AlertDescription className="text-red-800">{coursesError}</AlertDescription>
+                </Alert>
+              )}
+
+              {/* Loading State */}
+              {coursesLoading ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-purple-500 mx-auto mb-4" />
+                    <p className="text-gray-600">Loading courses...</p>
+                  </div>
+                </div>
+              ) : courses.length > 0 ? (
+                /* Courses Grid */
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {courses.map((course) => (
+                    <div
+                      key={course.course_id}
+                      className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+                    >
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
+                            {course.subject}
+                          </span>
+                          <span className="text-xs text-gray-500">Grade {course.grade_level}</span>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2">{course.course_name}</h3>
+                        <p className="text-sm text-gray-600 mb-3 line-clamp-3">{course.description}</p>
+                      </div>
+
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span>Duration: {course.duration_weeks} weeks</span>
+                          <span
+                            className={`px-2 py-1 rounded-full ${
+                              course.difficulty_level === "Beginner"
+                                ? "bg-green-100 text-green-700"
+                                : course.difficulty_level === "Intermediate"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {course.difficulty_level}
+                          </span>
+                        </div>
+                        {course.course_code && (
+                          <p className="text-xs text-gray-500">Course Code: {course.course_code}</p>
+                        )}
+                      </div>
+
+                      <Button
+                        className="w-full bg-purple-500 hover:bg-purple-600"
+                        onClick={() => (window.location.href = `/course/${course.course_id}`)}
+                      >
+                        Enter Course
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* No Courses State */
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <BookOpen className="w-8 h-8 text-purple-500" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">No Courses Available</h3>
+                    <p className="text-gray-600 mb-4">
+                      {coursesError?.includes("No grade selected")
+                        ? "Please select a grade first to see available courses"
+                        : "No courses are available for your selected grade level"}
+                    </p>
+                    {coursesError?.includes("No grade selected") && (
+                      <GradeSelectorDialog onGradeSelected={() => loadCourses()} />
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
