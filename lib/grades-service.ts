@@ -1,14 +1,11 @@
 import { supabase } from "./supabase"
 
 export interface Grade {
-  id: number
-  grade_name: string
-  grade_level: number
-  description: string
+  grade_id: number
+  grade: number
 }
 
 export interface UserGrade {
-  id: number
   user_id: string
   grade_id: number
   created_at: string
