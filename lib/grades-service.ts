@@ -15,7 +15,7 @@ export interface UserGrade {
 export const gradeService = {
   // Get all available grades
   async getGrades(): Promise<{ data: Grade[] | null; error: any }> {
-    const { data, error } = await supabase.from("grades").select("*").order("grade", { ascending: true })
+    const { data, error } = await supabase.from("grades").select("*"))
 
     return { data, error }
   },
