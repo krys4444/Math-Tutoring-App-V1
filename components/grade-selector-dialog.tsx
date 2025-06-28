@@ -65,7 +65,7 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
     if (saveError) {
       setError(`Failed to save grade: ${saveError.message}`)
     } else {
-      setSuccessMessage(`Successfully selected ${grade.grade_name}!`)
+      setSuccessMessage(`Successfully selected ${grade.grade}!`)
       setCurrentGrade({ ...data, grades: grade })
       onGradeSelected?.(grade)
 
