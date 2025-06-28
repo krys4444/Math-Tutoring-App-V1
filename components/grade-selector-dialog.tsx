@@ -7,13 +7,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2, GraduationCap, CheckCircle } from "lucide-react"
 import { gradeService, type Grade } from "@/lib/grades-service"
-import { supabase } from "@/lib/supabase"
+import { useAuth } from "@/hooks/use-auth"
 
 interface GradeSelectorDialogProps {
   onGradeSelected?: (grade: Grade) => void
 }
 
 export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProps) {
+  const { user } = useAuth() // Use the existing auth hook
   const [isOpen, setIsOpen] = useState(false)
   const [grades, setGrades] = useState<Grade[]>([])
   const [currentGrade, setCurrentGrade] = useState<any>(null)
@@ -21,7 +22,6 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [user, setUser] = useState<any>(null)
 
   // Load grades and current user grade when dialog opens
   useEffect(() => {
@@ -35,13 +35,6 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
     setError(null)
 
     try {
-      // Get current user for debugging using getSession (same as useAuth hook)
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const currentUser = session?.user
-      setUser(currentUser)
-
       // Load available grades
       const { data: gradesData, error: gradesError } = await gradeService.getGrades()
       if (gradesError) {
