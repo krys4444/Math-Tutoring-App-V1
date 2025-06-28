@@ -1,28 +1,38 @@
--- Function to save user interests (replaces all existing interests)
-CREATE OR REPLACE FUNCTION save_user_interests(interests JSONB)
-RETURNS VOID AS $$
+-- Create function to get user interests with metadata
+CREATE OR REPLACE FUNCTION get_user_interests_with_stats(user_uuid UUID)
+RETURNS TABLE (
+    interest_id INTEGER,
+    interest_name TEXT,
+    created_at TIMESTAMPTZ,
+    days_since_added INTEGER
+) AS $$
 BEGIN
-  -- Delete existing interests for the user
-  DELETE FROM user_interests WHERE user_id = auth.uid();
-  
-  -- Insert new interests
-  INSERT INTO user_interests (user_id, interest_id, interest_name)
-  SELECT 
-    auth.uid(),
-    (interest->>'id')::TEXT,
-    (interest->>'name')::TEXT
-  FROM jsonb_array_elements(interests) AS interest;
+    RETURN QUERY
+    SELECT 
+        ui.id,
+        ui.interest_name,
+        ui.created_at,
+        EXTRACT(DAY FROM NOW() - ui.created_at)::INTEGER as days_since_added
+    FROM user_interests ui
+    WHERE ui.user_id = user_uuid
+    ORDER BY ui.created_at DESC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Function to get user interests
-CREATE OR REPLACE FUNCTION get_user_interests()
-RETURNS TABLE(interest_id TEXT, interest_name TEXT) AS $$
+-- Create function to get popular interests
+CREATE OR REPLACE FUNCTION get_popular_interests(limit_count INTEGER DEFAULT 10)
+RETURNS TABLE (
+    interest_name TEXT,
+    user_count BIGINT
+) AS $$
 BEGIN
-  RETURN QUERY
-  SELECT ui.interest_id, ui.interest_name
-  FROM user_interests ui
-  WHERE ui.user_id = auth.uid()
-  ORDER BY ui.created_at;
+    RETURN QUERY
+    SELECT 
+        ui.interest_name,
+        COUNT(DISTINCT ui.user_id) as user_count
+    FROM user_interests ui
+    GROUP BY ui.interest_name
+    ORDER BY user_count DESC
+    LIMIT limit_count;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

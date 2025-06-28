@@ -1,110 +1,189 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, Sparkles, BookOpen } from "lucide-react"
-import { generatePersonalizedLesson, type PersonalizedLessonResponse } from "@/lib/openai-service"
+import { Loader2, CheckCircle, XCircle, Lightbulb } from "lucide-react"
+
+interface Problem {
+  id: number
+  question: string
+  answer: string
+  explanation: string
+  difficulty: "easy" | "medium" | "hard"
+}
 
 export function PersonalizedLesson() {
-  const [loading, setLoading] = useState(true)
-  const [result, setResult] = useState<PersonalizedLessonResponse | null>(null)
+  const [currentProblem, setCurrentProblem] = useState<Problem>({
+    id: 1,
+    question: "Solve for x: 2x + 5 = 13",
+    answer: "4",
+    explanation: "To solve 2x + 5 = 13, first subtract 5 from both sides: 2x = 8. Then divide both sides by 2: x = 4.",
+    difficulty: "easy",
+  })
 
-  const lessonContent = `Lesson Concept: Introduction to Quadratic Functions
+  const [userAnswer, setUserAnswer] = useState("")
+  const [showResult, setShowResult] = useState(false)
+  const [isCorrect, setIsCorrect] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [showHint, setShowHint] = useState(false)
 
-A quadratic function is any function that can be written in the form f(x) = ax² + bx + c, where a, b, and c are constants and a ≠ 0, and its graph creates a U-shaped curve called a parabola. 
+  const checkAnswer = () => {
+    setLoading(true)
 
-The coefficient 'a' determines whether the parabola opens upward (when a > 0) or downward (when a < 0), while the vertex represents the minimum point (if opening upward) or maximum point (if opening downward) of the function. 
-
-You can find the x-coordinate of the vertex using the formula x = -b/(2a), and substituting this value back into the original equation gives you the y-coordinate of the vertex.`
-
-  // Auto-generate personalization when component mounts
-  useEffect(() => {
-    const generatePersonalization = async () => {
-      setLoading(true)
-      setResult(null)
-
-      const response = await generatePersonalizedLesson()
-      setResult(response)
+    // Simulate API call delay
+    setTimeout(() => {
+      const correct = userAnswer.trim().toLowerCase() === currentProblem.answer.toLowerCase()
+      setIsCorrect(correct)
+      setShowResult(true)
       setLoading(false)
-    }
+    }, 1000)
+  }
 
-    generatePersonalization()
-  }, [])
+  const nextProblem = () => {
+    // Generate next problem (in real app, this would come from AI)
+    const problems: Problem[] = [
+      {
+        id: 2,
+        question: "What is the slope of the line passing through points (2, 3) and (4, 7)?",
+        answer: "2",
+        explanation: "Using the slope formula: m = (y₂ - y₁)/(x₂ - x₁) = (7 - 3)/(4 - 2) = 4/2 = 2",
+        difficulty: "medium",
+      },
+      {
+        id: 3,
+        question: "Factor: x² - 5x + 6",
+        answer: "(x-2)(x-3)",
+        explanation:
+          "To factor x² - 5x + 6, find two numbers that multiply to 6 and add to -5. Those numbers are -2 and -3, so the factored form is (x-2)(x-3).",
+        difficulty: "medium",
+      },
+    ]
+
+    const nextProb = problems[Math.floor(Math.random() * problems.length)]
+    setCurrentProblem(nextProb)
+    setUserAnswer("")
+    setShowResult(false)
+    setShowHint(false)
+  }
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case "easy":
+        return "text-green-600 bg-green-100"
+      case "medium":
+        return "text-yellow-600 bg-yellow-100"
+      case "hard":
+        return "text-red-600 bg-red-100"
+      default:
+        return "text-gray-600 bg-gray-100"
+    }
+  }
 
   return (
-    <div className="max-w-4xl space-y-6">
-      {/* Original Lesson */}
+    <div className="max-w-2xl mx-auto space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-blue-500" />
-            Math Lesson
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <pre className="whitespace-pre-wrap text-sm text-gray-800 font-sans leading-relaxed">{lessonContent}</pre>
+          <div className="flex items-center justify-between">
+            <CardTitle>Problem #{currentProblem.id}</CardTitle>
+            <span
+              className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(currentProblem.difficulty)}`}
+            >
+              {currentProblem.difficulty}
+            </span>
           </div>
+          <CardDescription>Solve the following problem step by step</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="text-lg font-medium bg-gray-50 p-4 rounded-lg">{currentProblem.question}</div>
+
+          {!showResult && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="answer">Your Answer</Label>
+                <Input
+                  id="answer"
+                  value={userAnswer}
+                  onChange={(e) => setUserAnswer(e.target.value)}
+                  placeholder="Enter your answer..."
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={checkAnswer}
+                  disabled={!userAnswer.trim() || loading}
+                  className="bg-purple-500 hover:bg-purple-600"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    "Check Answer"
+                  )}
+                </Button>
+
+                <Button variant="outline" onClick={() => setShowHint(!showHint)} disabled={loading}>
+                  <Lightbulb className="mr-2 h-4 w-4" />
+                  Hint
+                </Button>
+              </div>
+
+              {showHint && (
+                <Alert>
+                  <Lightbulb className="h-4 w-4" />
+                  <AlertDescription>
+                    Start by isolating the variable. What operation can you perform on both sides of the equation?
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
+
+          {showResult && (
+            <div className="space-y-4">
+              <Alert className={isCorrect ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+                <div className="flex items-center gap-2">
+                  {isCorrect ? (
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-red-600" />
+                  )}
+                  <AlertDescription className={isCorrect ? "text-green-800" : "text-red-800"}>
+                    {isCorrect ? "Correct! Well done." : `Incorrect. The correct answer is: ${currentProblem.answer}`}
+                  </AlertDescription>
+                </div>
+              </Alert>
+
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">Explanation:</h4>
+                <p className="text-blue-800">{currentProblem.explanation}</p>
+              </div>
+
+              <Button onClick={nextProblem} className="w-full bg-purple-500 hover:bg-purple-600">
+                Next Problem
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Loading State */}
-      {loading && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-500" />
-              Personalizing Your Lesson...
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center py-8">
-              <div className="text-center">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-500 mx-auto mb-4" />
-                <p className="text-gray-600">AI is connecting this lesson to your interests...</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Results */}
-      {result && !loading && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-500" />
-              Personalized Connection
-              {result.selectedInterest && (
-                <span className="text-sm font-normal text-gray-600">(Connected to: {result.selectedInterest})</span>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {result.error ? (
-              <Alert className="border-red-200 bg-red-50">
-                <AlertDescription className="text-red-800">{result.error}</AlertDescription>
-              </Alert>
-            ) : (
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                <p className="text-gray-800 leading-relaxed">{result.connection}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Instructions */}
-      <Card className="bg-blue-50 border-blue-200">
+      {/* Progress indicator */}
+      <Card>
         <CardContent className="pt-6">
-          <h3 className="font-semibold text-blue-800 mb-2">How it works:</h3>
-          <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
-            <li>Your interests are automatically loaded from the database</li>
-            <li>OpenAI GPT-4 analyzes the lesson and your interests</li>
-            <li>AI selects one of your interests and explains how it connects to quadratic functions</li>
-            <li>You get a personalized explanation that makes math more relevant to you!</li>
-          </ol>
+          <div className="flex items-center justify-between text-sm text-gray-600">
+            <span>Lesson Progress</span>
+            <span>3 of 10 problems completed</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+            <div className="bg-purple-500 h-2 rounded-full" style={{ width: "30%" }}></div>
+          </div>
         </CardContent>
       </Card>
     </div>

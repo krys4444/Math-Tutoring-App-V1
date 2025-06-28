@@ -1,20 +1,17 @@
-import { createServerClient } from "@/lib/supabase-server"
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get("code")
-  const next = searchParams.get("next") ?? "/dashboard"
+  const requestUrl = new URL(request.url)
+  const code = requestUrl.searchParams.get("code")
 
   if (code) {
-    const supabase = createServerClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
-    }
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    await supabase.auth.exchangeCodeForSession(code)
   }
 
-  // Return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+  // URL to redirect to after sign in process completes
+  return NextResponse.redirect(requestUrl.origin)
 }

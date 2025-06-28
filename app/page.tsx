@@ -107,7 +107,7 @@ export default function HomePage() {
             <div key={index} className={`${course.color} border-2 rounded-2xl p-6 hover:shadow-lg transition-shadow`}>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">{course.title}</h3>
               <p className="text-gray-600 mb-4">Comprehensive curriculum designed for Ontario students</p>
-              <Button variant="outline" className="w-full" onClick={() => setIsAuthOpen(true)}>
+              <Button variant="outline" className="w-full bg-transparent" onClick={() => setIsAuthOpen(true)}>
                 Explore Course
               </Button>
             </div>

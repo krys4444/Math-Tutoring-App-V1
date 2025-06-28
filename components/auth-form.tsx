@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/hooks/use-auth"
+import { useGrades } from "@/hooks/use-grades"
 import { Loader2 } from "lucide-react"
 
 interface AuthFormProps {
@@ -17,9 +19,11 @@ interface AuthFormProps {
 
 export function AuthForm({ onSuccess }: AuthFormProps) {
   const { signIn, signUp, signInWithGoogle } = useAuth()
+  const { grades, loading: gradesLoading, saveUserGrade } = useGrades()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const [selectedGrade, setSelectedGrade] = useState<string>("")
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -52,13 +56,30 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
     const firstName = formData.get("firstName") as string
     const lastName = formData.get("lastName") as string
 
-    const { error } = await signUp(email, password, firstName, lastName)
+    if (!selectedGrade) {
+      setError("Please select your grade level")
+      setLoading(false)
+      return
+    }
 
-    if (error) {
-      setError(error.message)
-    } else {
+    const { error: signUpError } = await signUp(email, password, firstName, lastName)
+
+    if (signUpError) {
+      setError(signUpError.message)
+      setLoading(false)
+      return
+    }
+
+    // Save the user's grade selection
+    try {
+      await saveUserGrade(Number.parseInt(selectedGrade))
+      setMessage("Check your email for the confirmation link!")
+    } catch (gradeError: any) {
+      console.error("Failed to save grade:", gradeError)
+      // Don't show error to user since account was created successfully
       setMessage("Check your email for the confirmation link!")
     }
+
     setLoading(false)
   }
 
@@ -132,7 +153,13 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
             </div>
           </div>
 
-          <Button type="button" variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={loading}>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full bg-transparent"
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+          >
             {loading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
@@ -194,7 +221,26 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
                 minLength={6}
               />
             </div>
-            <Button type="submit" className="w-full bg-purple-500 hover:bg-purple-600" disabled={loading}>
+            <div className="space-y-2">
+              <Label htmlFor="grade">Grade Level</Label>
+              <Select value={selectedGrade} onValueChange={setSelectedGrade} disabled={loading || gradesLoading}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your grade level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {grades.map((grade) => (
+                    <SelectItem key={grade.id} value={grade.id.toString()}>
+                      {grade.grade_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              type="submit"
+              className="w-full bg-purple-500 hover:bg-purple-600"
+              disabled={loading || gradesLoading}
+            >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -1,15 +1,73 @@
 import { supabase } from "./supabase"
 
 export interface Interest {
-  id: string
-  name: string
-  icon: string
-  description: string
+  id: number
+  interest_name: string
+  created_at: string
 }
 
 export interface UserInterest {
   interest_id: string
   interest_name: string
+}
+
+export const interestsService = {
+  // Get user's interests
+  async getUserInterests(): Promise<{ data: Interest[] | null; error: any }> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { data: null, error: { message: "User not authenticated" } }
+    }
+
+    const { data, error } = await supabase
+      .from("user_interests")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+
+    return { data, error }
+  },
+
+  // Add a new interest for the user
+  async addUserInterest(interestName: string): Promise<{ data: any; error: any }> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { data: null, error: { message: "User not authenticated" } }
+    }
+
+    const { data, error } = await supabase
+      .from("user_interests")
+      .insert([
+        {
+          user_id: user.id,
+          interest_name: interestName,
+        },
+      ])
+      .select()
+
+    return { data, error }
+  },
+
+  // Remove an interest
+  async removeUserInterest(interestId: number): Promise<{ data: any; error: any }> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { data: null, error: { message: "User not authenticated" } }
+    }
+
+    const { data, error } = await supabase.from("user_interests").delete().eq("id", interestId).eq("user_id", user.id)
+
+    return { data, error }
+  },
 }
 
 // Save user interests to database
@@ -37,8 +95,7 @@ export async function saveUserInterests(interests: Interest[]): Promise<{ error:
     // Insert new interests
     const interestsToInsert = interests.map((interest) => ({
       user_id: user.user.id,
-      interest_id: interest.id,
-      interest_name: interest.name,
+      interest_name: interest.interest_name,
     }))
 
     const { error: insertError } = await supabase.from("user_interests").insert(interestsToInsert)
