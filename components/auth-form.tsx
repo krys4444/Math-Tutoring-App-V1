@@ -56,7 +56,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
     const firstName = formData.get("firstName") as string
     const lastName = formData.get("lastName") as string
 
-    if (!selectedGrade) {
+    if (!selectedGrade || selectedGrade === "") {
       setError("Please select your grade level")
       setLoading(false)
       return
@@ -72,7 +72,11 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
 
     // Save the user's grade selection
     try {
-      await saveUserGrade(Number.parseInt(selectedGrade))
+      const gradeId = Number.parseInt(selectedGrade)
+      if (isNaN(gradeId)) {
+        throw new Error("Invalid grade selection")
+      }
+      await saveUserGrade(gradeId)
       setMessage("Check your email for the confirmation link!")
     } catch (gradeError: any) {
       console.error("Failed to save grade:", gradeError)
@@ -228,11 +232,19 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
                   <SelectValue placeholder="Select your grade level" />
                 </SelectTrigger>
                 <SelectContent>
-                  {grades.map((grade) => (
-                    <SelectItem key={grade.id} value={grade.id.toString()}>
-                      {grade.grade_name}
+                  {grades && grades.length > 0 ? (
+                    grades.map((grade) =>
+                      grade && grade.id ? (
+                        <SelectItem key={grade.id} value={grade.id.toString()}>
+                          {grade.grade_name || "Unknown Grade"}
+                        </SelectItem>
+                      ) : null,
+                    )
+                  ) : (
+                    <SelectItem value="" disabled>
+                      No grades available
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
