@@ -224,8 +224,7 @@ export default function Dashboard() {
                       <Button
                         className="w-full mt-4 bg-purple-500 hover:bg-purple-600"
                         onClick={() => {
-                          // For now, just show an alert - you can implement navigation later
-                          alert("Entering Test Course One...")
+                          window.location.href = "/course/test-course-one"
                         }}
                       >
                         Enter Course
