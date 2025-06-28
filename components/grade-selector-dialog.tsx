@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2, GraduationCap, CheckCircle } from "lucide-react"
@@ -43,9 +43,9 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
 
       // Load current user grade
       const { data: currentGradeData, error: currentGradeError } = await gradeService.getUserGrade()
-      if (currentGradeError && currentGradeError.message !== "No rows found") {
+      if (currentGradeError && !currentGradeError.message.includes("No rows")) {
         console.warn("Could not load current grade:", currentGradeError.message)
-      } else {
+      } else if (currentGradeData) {
         setCurrentGrade(currentGradeData)
       }
     } catch (err) {
@@ -80,110 +80,111 @@ export function GradeSelectorDialog({ onGradeSelected }: GradeSelectorDialogProp
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2 bg-transparent">
-          <GraduationCap className="w-4 h-4" />
-          {currentGrade?.grades?.grade_name || "Select Grade"}
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <GraduationCap className="w-5 h-5 text-purple-500" />
-            Select Your Grade Level
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Button variant="outline" className="flex items-center gap-2 bg-transparent" onClick={() => setIsOpen(true)}>
+        <GraduationCap className="w-4 h-4" />
+        {currentGrade?.grades?.grade_name || "Select Grade"}
+      </Button>
 
-        <div className="space-y-4">
-          {/* Current Grade Display */}
-          {currentGrade?.grades && (
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="w-4 h-4 text-purple-600" />
-                <span className="text-sm font-medium text-purple-800">Current Grade</span>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <GraduationCap className="w-5 h-5 text-purple-500" />
+              Select Your Grade Level
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Current Grade Display */}
+            {currentGrade?.grades && (
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle className="w-4 h-4 text-purple-600" />
+                  <span className="text-sm font-medium text-purple-800">Current Grade</span>
+                </div>
+                <p className="text-purple-700 font-semibold">{currentGrade.grades.grade_name}</p>
+                {currentGrade.grades.description && (
+                  <p className="text-sm text-purple-600 mt-1">{currentGrade.grades.description}</p>
+                )}
               </div>
-              <p className="text-purple-700 font-semibold">{currentGrade.grades.grade_name}</p>
-              {currentGrade.grades.description && (
-                <p className="text-sm text-purple-600 mt-1">{currentGrade.grades.description}</p>
-              )}
-            </div>
-          )}
+            )}
 
-          {/* Error/Success Messages */}
-          {error && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertDescription className="text-red-800">{error}</AlertDescription>
-            </Alert>
-          )}
+            {/* Error/Success Messages */}
+            {error && (
+              <Alert className="border-red-200 bg-red-50">
+                <AlertDescription className="text-red-800">{error}</AlertDescription>
+              </Alert>
+            )}
 
-          {successMessage && (
-            <Alert className="border-green-200 bg-green-50">
-              <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
-            </Alert>
-          )}
+            {successMessage && (
+              <Alert className="border-green-200 bg-green-50">
+                <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
+              </Alert>
+            )}
 
-          {/* Loading State */}
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-center">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-500 mx-auto mb-4" />
-                <p className="text-gray-600">Loading grade options...</p>
+            {/* Loading State */}
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-purple-500 mx-auto mb-4" />
+                  <p className="text-gray-600">Loading grade options...</p>
+                </div>
               </div>
-            </div>
-          ) : (
-            /* Grade Options */
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
-              {grades.map((grade) => {
-                const isSelected = currentGrade?.grades?.id === grade.id
-                return (
-                  <Card
-                    key={grade.id}
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      isSelected ? "border-purple-500 bg-purple-50" : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <CardContent className="p-4">
-                      <button
-                        onClick={() => handleGradeSelect(grade)}
-                        disabled={saving || isSelected}
-                        className="w-full text-left disabled:cursor-not-allowed"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className={`font-semibold mb-1 ${isSelected ? "text-purple-700" : "text-gray-800"}`}>
-                              {grade.grade_name}
-                            </h3>
-                            {grade.description && <p className="text-sm text-gray-600">{grade.description}</p>}
-                            <p className="text-xs text-gray-500 mt-1">Level {grade.grade_level}</p>
+            ) : (
+              /* Grade Options */
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+                {grades.map((grade) => {
+                  const isSelected = currentGrade?.grades?.id === grade.id
+                  return (
+                    <Card
+                      key={grade.id}
+                      className={`cursor-pointer transition-all hover:shadow-md ${
+                        isSelected ? "border-purple-500 bg-purple-50" : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <CardContent className="p-4">
+                        <button
+                          onClick={() => handleGradeSelect(grade)}
+                          disabled={saving || isSelected}
+                          className="w-full text-left disabled:cursor-not-allowed"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className={`font-semibold mb-1 ${isSelected ? "text-purple-700" : "text-gray-800"}`}>
+                                {grade.grade_name}
+                              </h3>
+                              {grade.description && <p className="text-sm text-gray-600">{grade.description}</p>}
+                              <p className="text-xs text-gray-500 mt-1">Level {grade.grade_level}</p>
+                            </div>
+                            {isSelected && <CheckCircle className="w-5 h-5 text-purple-500 flex-shrink-0 ml-2" />}
                           </div>
-                          {isSelected && <CheckCircle className="w-5 h-5 text-purple-500 flex-shrink-0 ml-2" />}
-                        </div>
-                      </button>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
-          )}
-
-          {!loading && grades.length === 0 && (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <GraduationCap className="w-8 h-8 text-gray-400" />
+                        </button>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
               </div>
-              <p className="text-gray-500">No grade options available</p>
-            </div>
-          )}
+            )}
 
-          {saving && (
-            <div className="flex items-center justify-center py-4">
-              <Loader2 className="w-5 h-5 animate-spin text-purple-500 mr-2" />
-              <span className="text-gray-600">Saving your selection...</span>
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+            {!loading && grades.length === 0 && (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <GraduationCap className="w-8 h-8 text-gray-400" />
+                </div>
+                <p className="text-gray-500">No grade options available</p>
+              </div>
+            )}
+
+            {saving && (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-5 h-5 animate-spin text-purple-500 mr-2" />
+                <span className="text-gray-600">Saving your selection...</span>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
