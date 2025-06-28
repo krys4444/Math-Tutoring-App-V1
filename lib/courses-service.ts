@@ -5,7 +5,7 @@ export interface Course {
   course_name: string
   course_code: string
   description: string
-  grade_level: number
+  grade: number
   subject: string
   duration_weeks: number
   difficulty_level: string
@@ -49,7 +49,7 @@ export const courseService = {
     const { data: coursesData, error: coursesError } = await supabase
       .from("courses")
       .select("*")
-      .eq("grade_level", userGradeData.grades.grade)
+      .eq("grade", userGradeData.grades.grade)
       .order("course_name", { ascending: true })
 
     return { data: coursesData, error: coursesError }
@@ -60,7 +60,7 @@ export const courseService = {
     const { data, error } = await supabase
       .from("courses")
       .select("*")
-      .order("grade_level", { ascending: true })
+      .order("grade", { ascending: true })
       .order("course_name", { ascending: true })
 
     return { data, error }
@@ -71,7 +71,7 @@ export const courseService = {
     const { data, error } = await supabase
       .from("courses")
       .select("*")
-      .eq("grade_level", gradeLevel)
+      .eq("grade", gradeLevel)
       .order("course_name", { ascending: true })
 
     return { data, error }
@@ -103,7 +103,7 @@ export const courseService = {
           course_name,
           course_code,
           description,
-          grade_level,
+          grade,
           subject,
           duration_weeks,
           difficulty_level

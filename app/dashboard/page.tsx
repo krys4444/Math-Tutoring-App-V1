@@ -262,7 +262,7 @@ export default function Dashboard() {
                           <span className="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
                             {course.subject}
                           </span>
-                          <span className="text-xs text-gray-500">Grade {course.grade_level}</span>
+                          <span className="text-xs text-gray-500">Grade {course.grade}</span>
                         </div>
                         <h3 className="text-lg font-semibold text-gray-800 mb-2">{course.course_name}</h3>
                         <p className="text-sm text-gray-600 mb-3 line-clamp-3">{course.description}</p>
