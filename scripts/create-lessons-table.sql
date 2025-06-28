@@ -10,18 +10,26 @@ CREATE TABLE IF NOT EXISTS lessons (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Enable Row Level Security (optional)
+-- Enable Row Level Security
 ALTER TABLE lessons ENABLE ROW LEVEL SECURITY;
 
--- Create a policy to allow all users to read lessons (adjust as needed)
-CREATE POLICY IF NOT EXISTS "Allow public read access to lessons" ON lessons
-  FOR SELECT USING (true);
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Allow public read access to lessons" ON lessons;
+DROP POLICY IF EXISTS "Allow authenticated users to read lessons" ON lessons;
 
--- Create an index for better performance
+-- Create a policy to allow only authenticated users to read lessons
+CREATE POLICY "Allow authenticated users to read lessons" ON lessons
+  FOR SELECT USING (auth.uid() IS NOT NULL);
+
+-- Optional: Allow authenticated users to insert lessons (for admin functionality)
+CREATE POLICY IF NOT EXISTS "Allow authenticated users to insert lessons" ON lessons
+  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+-- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_lessons_topic ON lessons(topic);
 CREATE INDEX IF NOT EXISTS idx_lessons_order ON lessons(order_index);
 
--- Insert sample data for testing (optional)
+-- Insert sample data for testing (only if it doesn't exist)
 INSERT INTO lessons (topic, body_md, title, description, order_index) VALUES 
 (
   'Percentages',
@@ -71,4 +79,4 @@ Percentages are used everywhere:
 ) ON CONFLICT DO NOTHING;
 
 -- Confirm table was created
-SELECT 'Lessons table created successfully' as status;
+SELECT 'Lessons table created successfully with proper authentication' as status;

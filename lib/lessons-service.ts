@@ -4,18 +4,36 @@ export interface Lesson {
   id: string
   topic: string
   body_md: string
+  title?: string
+  description?: string
+  order_index?: number
   created_at?: string
   updated_at?: string
 }
 
-// Fetch lessons by topic
+// Fetch lessons by topic with authentication
 export async function getLessonsByTopic(topic: string): Promise<{ data: Lesson[] | null; error: Error | null }> {
   try {
+    // Check if user is authenticated
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError) {
+      console.error("Authentication error:", authError)
+      return { data: null, error: new Error("Authentication failed") }
+    }
+
+    if (!user) {
+      return { data: null, error: new Error("User not authenticated") }
+    }
+
     const { data, error } = await supabase
       .from("lessons")
-      .select("id, topic, body_md, created_at, updated_at")
+      .select("id, topic, body_md, title, description, order_index, created_at, updated_at")
       .eq("topic", topic)
-      .order("created_at", { ascending: true })
+      .order("order_index", { ascending: true })
 
     if (error) {
       console.error("Error fetching lessons:", error)
@@ -29,13 +47,28 @@ export async function getLessonsByTopic(topic: string): Promise<{ data: Lesson[]
   }
 }
 
-// Fetch all lessons
+// Fetch all lessons with authentication
 export async function getAllLessons(): Promise<{ data: Lesson[] | null; error: Error | null }> {
   try {
+    // Check if user is authenticated
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError) {
+      console.error("Authentication error:", authError)
+      return { data: null, error: new Error("Authentication failed") }
+    }
+
+    if (!user) {
+      return { data: null, error: new Error("User not authenticated") }
+    }
+
     const { data, error } = await supabase
       .from("lessons")
-      .select("id, topic, body_md, created_at, updated_at")
-      .order("created_at", { ascending: true })
+      .select("id, topic, body_md, title, description, order_index, created_at, updated_at")
+      .order("order_index", { ascending: true })
 
     if (error) {
       console.error("Error fetching all lessons:", error)

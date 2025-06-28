@@ -4,17 +4,28 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArrowLeft, BookOpen, Clock, Users, Globe, Loader2 } from "lucide-react"
+import { ArrowLeft, BookOpen, Clock, Users, Globe, Loader2, AlertCircle } from "lucide-react"
 import { getLessonsByTopic, type Lesson } from "@/lib/lessons-service"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function TestCourseOne() {
+  const { user, loading: authLoading } = useAuth()
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch lessons on component mount
+  // Fetch lessons on component mount, but only if user is authenticated
   useEffect(() => {
     const fetchLessons = async () => {
+      // Wait for auth to complete
+      if (authLoading) return
+
+      // Redirect to login if not authenticated
+      if (!user) {
+        window.location.href = "/"
+        return
+      }
+
       setLoading(true)
       setError(null)
 
@@ -30,7 +41,7 @@ export default function TestCourseOne() {
     }
 
     fetchLessons()
-  }, [])
+  }, [user, authLoading])
 
   // Function to render markdown content as HTML (basic implementation)
   const renderMarkdown = (markdown: string) => {
@@ -40,6 +51,35 @@ export default function TestCourseOne() {
       .replace(/\*(.*?)\*/g, "<em>$1</em>") // Italic
       .replace(/\n\n/g, "</p><p>") // Paragraphs
       .replace(/\n/g, "<br>") // Line breaks
+      .replace(/^# (.*$)/gm, "<h1>$1</h1>") // H1
+      .replace(/^## (.*$)/gm, "<h2>$1</h2>") // H2
+      .replace(/^### (.*$)/gm, "<h3>$1</h3>") // H3
+  }
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-purple-500 mx-auto mb-4" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Redirect message if not authenticated (shouldn't show due to redirect above)
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Authentication Required</h2>
+          <p className="text-gray-600 mb-4">Please sign in to access this course.</p>
+          <Button onClick={() => (window.location.href = "/")}>Go to Sign In</Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -63,6 +103,14 @@ export default function TestCourseOne() {
               </div>
               <span className="text-lg font-semibold text-gray-800">MathTutor</span>
             </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+              <span className="text-purple-600 font-medium text-sm">
+                {user?.user_metadata?.first_name?.[0] || user?.email?.[0]?.toUpperCase()}
+              </span>
+            </div>
+            <span className="text-sm text-gray-600">{user?.email}</span>
           </div>
         </div>
       </header>
@@ -100,7 +148,14 @@ export default function TestCourseOne() {
 
                 {error && (
                   <Alert className="mb-6 border-red-200 bg-red-50">
-                    <AlertDescription className="text-red-800">Error loading lessons: {error}</AlertDescription>
+                    <AlertCircle className="w-4 h-4" />
+                    <AlertDescription className="text-red-800">
+                      Error loading lessons: {error}
+                      <br />
+                      <span className="text-sm">
+                        Make sure you have the 'lessons' table set up in Supabase and proper RLS policies.
+                      </span>
+                    </AlertDescription>
                   </Alert>
                 )}
 
@@ -110,9 +165,12 @@ export default function TestCourseOne() {
                       <BookOpen className="w-8 h-8 text-gray-400" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">No Lessons Found</h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 mb-4">
                       No lessons found for the topic "Percentages". Please check your database.
                     </p>
+                    <Button variant="outline" onClick={() => window.open("https://supabase.com/dashboard", "_blank")}>
+                      Open Supabase Dashboard
+                    </Button>
                   </div>
                 )}
 
@@ -122,14 +180,15 @@ export default function TestCourseOne() {
                       <div key={lesson.id} className="border-b border-gray-200 pb-6 last:border-b-0">
                         <div className="flex items-center gap-2 mb-4">
                           <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-sm font-medium">
-                            Lesson {index + 1}
+                            Lesson {lesson.order_index || index + 1}
                           </span>
-                          <h3 className="text-xl font-semibold text-gray-800">{lesson.topic}</h3>
+                          <h3 className="text-xl font-semibold text-gray-800">{lesson.title || lesson.topic}</h3>
                         </div>
+                        {lesson.description && <p className="text-gray-600 mb-4">{lesson.description}</p>}
                         <div
-                          className="prose prose-gray max-w-none"
+                          className="prose prose-gray max-w-none lesson-content"
                           dangerouslySetInnerHTML={{
-                            __html: `<p>${renderMarkdown(lesson.body_md)}</p>`,
+                            __html: renderMarkdown(lesson.body_md),
                           }}
                         />
                         {lesson.created_at && (
@@ -157,8 +216,8 @@ export default function TestCourseOne() {
                   <div className="space-y-4">
                     <div>
                       <div className="flex justify-between text-sm text-gray-600 mb-2">
-                        <span>Lessons Completed</span>
-                        <span>0/{lessons.length || 12}</span>
+                        <span>Lessons Available</span>
+                        <span>{lessons.length} lessons</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div className="bg-purple-500 h-2 rounded-full" style={{ width: "0%" }}></div>
@@ -189,7 +248,7 @@ export default function TestCourseOne() {
                       <BookOpen className="w-5 h-5 text-gray-400" />
                       <div>
                         <p className="font-medium text-gray-800">Lessons</p>
-                        <p className="text-sm text-gray-600">{lessons.length || 12} lessons</p>
+                        <p className="text-sm text-gray-600">{lessons.length} lessons</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -240,6 +299,31 @@ export default function TestCourseOne() {
           </div>
         </div>
       </main>
+
+      <style jsx>{`
+        .lesson-content h1 {
+          font-size: 1.5rem;
+          font-weight: bold;
+          margin: 1rem 0;
+          color: #1f2937;
+        }
+        .lesson-content h2 {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin: 0.75rem 0;
+          color: #374151;
+        }
+        .lesson-content h3 {
+          font-size: 1.125rem;
+          font-weight: 600;
+          margin: 0.5rem 0;
+          color: #4b5563;
+        }
+        .lesson-content p {
+          margin: 0.5rem 0;
+          line-height: 1.6;
+        }
+      `}</style>
     </div>
   )
 }
