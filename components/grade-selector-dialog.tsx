@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2, GraduationCap, CheckCircle } from "lucide-react"
 import { gradeService, type Grade } from "@/lib/grades-service"
-import { supabase } from "@/lib/supabase-client"
+import { supabase } from "@/lib/supabase"
 
 interface GradeSelectorDialogProps {
   onGradeSelected?: (grade: Grade) => void
