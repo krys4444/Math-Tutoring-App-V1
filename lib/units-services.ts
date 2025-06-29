@@ -1,38 +1,50 @@
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation" // or useRouter()
-import { unitService, type Unit } from "@/lib/unit-service"
+import { supabase } from "./supabase"
 
-export default function CourseUnitsPage() {
-  const { course_id } = useParams()
-  const [units, setUnits] = useState<Unit[]>([])
-  const [error, setError] = useState<string | null>(null)
+export interface Unit {
+  unit_id: number
+  unit_name: string
+  description: string
+  course_id: number
+  order: number
+  created_at: string
+  updated_at: string
+}
 
-  useEffect(() => {
-    if (!course_id) return
+export const unitService = {
+  // ✅ Get all units for a given course ID (from the URL)
+  async getUnitsByCourseId(courseId: number): Promise<{ data: Unit[] | null; error: any }> {
+    const { data, error } = await supabase
+      .from("units")
+      .select("*")
+      .eq("course_id", courseId)
+      .order("order", { ascending: true }) // optional: sort units by order field
+      .order("unit_name", { ascending: true }) // secondary sort
 
-    const loadUnits = async () => {
-      const { data, error } = await unitService.getUnitsByCourseId(Number(course_id))
-      if (error) {
-        setError(error.message)
-      } else {
-        setUnits(data || [])
-      }
-    }
+    return { data, error }
+  },
 
-    loadUnits()
-  }, [course_id])
+  // ✅ Get a specific unit by its unit ID
+  async getUnitById(unitId: number): Promise<{ data: Unit | null; error: any }> {
+    const { data, error } = await supabase
+      .from("units")
+      .select("*")
+      .eq("unit_id", unitId)
+      .single()
 
-  return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Units for Course {course_id}</h1>
-      {error && <p className="text-red-500">{error}</p>}
-      <ul>
-        {units.map((unit) => (
-          <li key={unit.unit_id} className="mb-2">
-            <strong>{unit.unit_name}</strong>: {unit.description}
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
+    return { data, error }
+  },
+
+  // ✅ Optional: Enroll a user in a unit (if you're tracking this later)
+  async enrollInUnit(userId: string, unitId: number): Promise<{ data: any; error: any }> {
+    const { data, error } = await supabase.from("user_units").insert([
+      {
+        user_id: userId,
+        unit_id: unitId,
+        progress: 0,
+        started_at: new Date().toISOString(),
+      },
+    ])
+
+    return { data, error }
+  },
 }
