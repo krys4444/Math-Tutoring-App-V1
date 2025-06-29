@@ -37,7 +37,7 @@ export const courseService = {
     // First get the user's selected grade
     const { data: userGradeData, error: gradeError } = await supabase
       .from("user_grade")
-      .select("grade_id, grades(grade)")
+      .select("grade_id, grade")
       .eq("user_id", user.id)
       .single()
 
