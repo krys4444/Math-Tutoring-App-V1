@@ -21,8 +21,23 @@ import { useAuth } from "@/hooks/use-auth"
 import { useInterests } from "@/hooks/use-interests"
 import { PersonalizedLesson } from "@/components/personalized-lesson"
 import { GradeSelectorDialog } from "@/components/grade-selector-dialog"
-import { courseService, type Course } from "@/lib/courses-service"
+import { supabase } from "@/lib/supabase"
 import { gradeService } from "@/lib/grades-service"
+
+interface Course {
+  course_id: number
+  course_name: string
+  course_code: string
+  description: string
+  grade: number
+  subject: string
+  duration_weeks: number
+  difficulty_level: string
+  prerequisites: string[]
+  learning_objectives: string[]
+  created_at: string
+  updated_at: string
+}
 
 const sidebarItems = [
   {
@@ -123,13 +138,12 @@ export default function Dashboard() {
         return
       }
 
-      // Then get courses for that grade level
-      const { data: allCoursesData, error: coursesError } = await courseService.getAllCourses()
-
-      let coursesData = allCoursesData
-      if (allCoursesData && userGradeData.grades.grade) {
-        coursesData = allCoursesData.filter((course) => course.grade === userGradeData.grades.grade)
-      }
+      // Then get courses for that grade level directly from Supabase
+      const { data: coursesData, error: coursesError } = await supabase
+        .from("courses")
+        .select("*")
+        .eq("grade", userGradeData.grades.grade)
+        .order("course_name", { ascending: true })
 
       if (coursesError) {
         setCoursesError(coursesError.message)
