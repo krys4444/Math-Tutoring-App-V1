@@ -95,7 +95,7 @@ export const courseService = {
     }
 
     const { data, error } = await supabase
-      .from("user_courses")
+      .from("courses")
       .select(`
         *,
         courses (
