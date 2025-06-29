@@ -101,12 +101,7 @@ export const courseService = {
         courses (
           course_id,
           course_name,
-          course_code,
-          description,
-          grade,
-          subject,
-          duration_weeks,
-          difficulty_level
+          course_description
         )
       `)
       .eq("user_id", session.user.id)
