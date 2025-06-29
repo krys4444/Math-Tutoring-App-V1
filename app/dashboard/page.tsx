@@ -21,23 +21,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useInterests } from "@/hooks/use-interests"
 import { PersonalizedLesson } from "@/components/personalized-lesson"
 import { GradeSelectorDialog } from "@/components/grade-selector-dialog"
-import { supabase } from "@/lib/supabase"
-import { gradeService } from "@/lib/grades-service"
-
-interface Course {
-  course_id: number
-  course_name: string
-  course_code: string
-  description: string
-  grade: number
-  subject: string
-  duration_weeks: number
-  difficulty_level: string
-  prerequisites: string[]
-  learning_objectives: string[]
-  created_at: string
-  updated_at: string
-}
+import { courseService, type Course } from "@/lib/courses-service"
 
 const sidebarItems = [
   {
@@ -123,27 +107,8 @@ export default function Dashboard() {
     setCoursesError(null)
 
     try {
-      // First get the user's selected grade
-      const { data: userGradeData, error: gradeError } = await gradeService.getUserGrade()
-
-      if (gradeError) {
-        setCoursesError("No grade selected. Please select a grade first.")
-        setCoursesLoading(false)
-        return
-      }
-
-      if (!userGradeData?.grades?.grade) {
-        setCoursesError("No grade selected. Please select a grade first.")
-        setCoursesLoading(false)
-        return
-      }
-
-      // Then get courses for that grade level directly from Supabase
-      const { data: coursesData, error: coursesError } = await supabase
-        .from("courses")
-        .select("*")
-        .eq("grade", userGradeData.grades.grade)
-        .order("course_name", { ascending: true })
+      // Use the existing course service method
+      const { data: coursesData, error: coursesError } = await courseService.getCoursesForUserGrade()
 
       if (coursesError) {
         setCoursesError(coursesError.message)
