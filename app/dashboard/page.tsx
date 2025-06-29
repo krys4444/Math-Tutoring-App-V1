@@ -124,9 +124,12 @@ export default function Dashboard() {
       }
 
       // Then get courses for that grade level
-      const { data: coursesData, error: coursesError } = await courseService.getCoursesByGrade(
-        userGradeData.grades.grade,
-      )
+      const { data: allCoursesData, error: coursesError } = await courseService.getAllCourses()
+
+      let coursesData = allCoursesData
+      if (allCoursesData && userGradeData.grades.grade) {
+        coursesData = allCoursesData.filter((course) => course.grade === userGradeData.grades.grade)
+      }
 
       if (coursesError) {
         setCoursesError(coursesError.message)
