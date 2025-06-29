@@ -122,7 +122,7 @@ export const courseService = {
 
     // Check if already enrolled
     const { data: existingEnrollment } = await supabase
-      .from("user_courses")
+      .from("courses")
       .select("*")
       .eq("user_id", session.user.id)
       .eq("course_id", courseId)
