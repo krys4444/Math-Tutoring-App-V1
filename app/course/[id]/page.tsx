@@ -4,11 +4,38 @@ import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, BookOpen, Clock, Users, Star } from "lucide-react"
+import { useState, useEffect } from "react"
+import { courseService, type Course } from "@/lib/courses-service"
 
 export default function CoursePage() {
   const params = useParams()
   const router = useRouter()
   const courseId = params.id
+
+  const [course, setCourse] = useState<Course | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const loadCourse = async () => {
+      if (courseId) {
+        setLoading(true)
+        setError(null)
+
+        const { data, error: courseError } = await courseService.getCourseById(Number(courseId))
+
+        if (courseError) {
+          setError(courseError.message)
+        } else {
+          setCourse(data)
+        }
+
+        setLoading(false)
+      }
+    }
+
+    loadCourse()
+  }, [courseId])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
@@ -34,13 +61,50 @@ export default function CoursePage() {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-6 py-12">
         <div className="text-center mb-12">
-          <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <BookOpen className="w-12 h-12 text-purple-500" />
-          </div>
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Course Content Coming Soon!</h1>
-          <p className="text-xl text-gray-600 mb-8">
-            We're working hard to bring you an amazing learning experience for Course ID: {courseId}
-          </p>
+          {loading ? (
+            <>
+              <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+                <BookOpen className="w-12 h-12 text-gray-400" />
+              </div>
+              <h1 className="text-4xl font-bold text-gray-800 mb-4">Loading Course...</h1>
+            </>
+          ) : error ? (
+            <>
+              <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-red-500 text-2xl">⚠️</span>
+              </div>
+              <h1 className="text-4xl font-bold text-gray-800 mb-4">Course Not Found</h1>
+              <p className="text-xl text-gray-600 mb-8">{error}</p>
+            </>
+          ) : course ? (
+            <>
+              <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <BookOpen className="w-12 h-12 text-purple-500" />
+              </div>
+              <h1 className="text-4xl font-bold text-gray-800 mb-4">{course.course_name}</h1>
+              <p className="text-xl text-gray-600 mb-4">{course.description}</p>
+              <div className="flex items-center justify-center gap-6 mb-8">
+                <span className="text-sm text-gray-500">Grade {course.grade_id}</span>
+                <span className="text-sm text-gray-500">•</span>
+                <span className="text-sm text-gray-500">{course.duration_weeks} weeks</span>
+                <span className="text-sm text-gray-500">•</span>
+                <span className="text-sm text-gray-500">{course.difficulty_level}</span>
+              </div>
+              <p className="text-lg text-gray-600 mb-8">
+                Course content coming soon! We're working hard to bring you an amazing learning experience.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <BookOpen className="w-12 h-12 text-purple-500" />
+              </div>
+              <h1 className="text-4xl font-bold text-gray-800 mb-4">Course Content Coming Soon!</h1>
+              <p className="text-xl text-gray-600 mb-8">
+                We're working hard to bring you an amazing learning experience for Course ID: {courseId}
+              </p>
+            </>
+          )}
         </div>
 
         {/* Feature Preview Cards */}
