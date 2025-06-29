@@ -91,10 +91,6 @@ export const courseService = {
       {
         user_id: userId,
         course_id,
-        enrollment_date: new Date().toISOString(),
-        progress: 0,
-        status: "enrolled",
-      },
     ])
 
     return { data, error }
