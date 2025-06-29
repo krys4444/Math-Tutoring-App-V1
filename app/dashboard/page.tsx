@@ -22,6 +22,7 @@ import { useInterests } from "@/hooks/use-interests"
 import { PersonalizedLesson } from "@/components/personalized-lesson"
 import { GradeSelectorDialog } from "@/components/grade-selector-dialog"
 import { courseService, type Course } from "@/lib/courses-service"
+import { gradeService } from "@/lib/grades-service"
 
 const sidebarItems = [
   {
@@ -106,12 +107,34 @@ export default function Dashboard() {
     setCoursesLoading(true)
     setCoursesError(null)
 
-    const { data, error } = await courseService.getCoursesForUserGrade()
+    try {
+      // First get the user's selected grade
+      const { data: userGradeData, error: gradeError } = await gradeService.getUserGrade()
 
-    if (error) {
-      setCoursesError(error.message)
-    } else {
-      setCourses(data || [])
+      if (gradeError) {
+        setCoursesError("No grade selected. Please select a grade first.")
+        setCoursesLoading(false)
+        return
+      }
+
+      if (!userGradeData?.grades?.grade) {
+        setCoursesError("No grade selected. Please select a grade first.")
+        setCoursesLoading(false)
+        return
+      }
+
+      // Then get courses for that grade level
+      const { data: coursesData, error: coursesError } = await courseService.getCoursesByGrade(
+        userGradeData.grades.grade,
+      )
+
+      if (coursesError) {
+        setCoursesError(coursesError.message)
+      } else {
+        setCourses(coursesData || [])
+      }
+    } catch (err) {
+      setCoursesError(`Unexpected error: ${err instanceof Error ? err.message : "Unknown error"}`)
     }
 
     setCoursesLoading(false)
@@ -218,7 +241,7 @@ export default function Dashboard() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <GradeSelectorDialog onGradeSelected={(grade) => console.log("Grade selected:", grade)} />
+              <GradeSelectorDialog onGradeSelected={(grade) => loadCourses()} />
             </div>
           </div>
         </header>
