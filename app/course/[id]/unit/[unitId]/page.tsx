@@ -71,7 +71,9 @@ export default function UnitPage() {
     router.push(`/course/${courseId}/unit/${unitId}/subunit/${subunit.subunit_id}`)
   }
 
-  const getContentIcon = (contentType: string) => {
+  const getContentIcon = (contentType: string | null | undefined) => {
+    if (!contentType) return <Play className="w-5 h-5" />
+
     switch (contentType.toLowerCase()) {
       case "video":
         return <Video className="w-5 h-5" />
@@ -85,7 +87,9 @@ export default function UnitPage() {
     }
   }
 
-  const getContentColor = (contentType: string) => {
+  const getContentColor = (contentType: string | null | undefined) => {
+    if (!contentType) return "text-purple-600 bg-purple-100"
+
     switch (contentType.toLowerCase()) {
       case "video":
         return "text-red-600 bg-red-100"
@@ -178,51 +182,53 @@ export default function UnitPage() {
                 </div>
 
                 <div className="grid gap-4">
-                  {subunits.map((subunit, index) => (
-                    <Card
-                      key={subunit.subunit_id}
-                      className="hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-blue-500"
-                      onClick={() => handleSubunitClick(subunit)}
-                    >
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-sm">
-                                {subunit.order}
+                  {subunits
+                    .sort((a, b) => a.order - b.order)
+                    .map((subunit, index) => (
+                      <Card
+                        key={subunit.subunit_id}
+                        className="hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-blue-500"
+                        onClick={() => handleSubunitClick(subunit)}
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-sm">
+                                  {subunit.order}
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-800">{subunit.subunit_name}</h3>
+                                <div
+                                  className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getContentColor(subunit.content_type)}`}
+                                >
+                                  {getContentIcon(subunit.content_type)}
+                                  <span className="capitalize">{subunit.content_type || "Content"}</span>
+                                </div>
                               </div>
-                              <h3 className="text-lg font-semibold text-gray-800">{subunit.subunit_name}</h3>
-                              <div
-                                className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getContentColor(subunit.content_type)}`}
-                              >
-                                {getContentIcon(subunit.content_type)}
-                                <span className="capitalize">{subunit.content_type}</span>
+                              <p className="text-gray-600 mb-3">{subunit.description}</p>
+                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <span>Item {subunit.order}</span>
+                                {subunit.estimated_duration_minutes && (
+                                  <>
+                                    <span>•</span>
+                                    <span>{subunit.estimated_duration_minutes} min</span>
+                                  </>
+                                )}
+                                <span>•</span>
+                                <span>Unit ID: {subunit.unit_id}</span>
                               </div>
                             </div>
-                            <p className="text-gray-600 mb-3">{subunit.description}</p>
-                            <div className="flex items-center gap-4 text-xs text-gray-500">
-                              <span>Item {subunit.order}</span>
-                              {subunit.estimated_duration_minutes && (
-                                <>
-                                  <span>•</span>
-                                  <span>{subunit.estimated_duration_minutes} min</span>
-                                </>
-                              )}
-                              <span>•</span>
-                              <span>Unit ID: {subunit.unit_id}</span>
+                            <div className="flex flex-col items-center gap-2 ml-4">
+                              {/* Status indicator - you can customize this based on user progress */}
+                              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                <Lock className="w-5 h-5 text-gray-400" />
+                              </div>
+                              <span className="text-xs text-gray-500">Locked</span>
                             </div>
                           </div>
-                          <div className="flex flex-col items-center gap-2 ml-4">
-                            {/* Status indicator - you can customize this based on user progress */}
-                            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                              <Lock className="w-5 h-5 text-gray-400" />
-                            </div>
-                            <span className="text-xs text-gray-500">Locked</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))}
                 </div>
 
                 {/* Unit Progress Summary */}
