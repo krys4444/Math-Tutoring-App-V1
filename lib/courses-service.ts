@@ -36,10 +36,9 @@ export const courseService = {
 
     // First get the user's selected grade
     const { data: userGradeData, error: gradeError } = await supabase
-      .from("user_grade")
+      .from("grades")
       .select("grade_id")
       .eq("user_id", session.user.id)
-      .single()
 
     if (gradeError) {
       return { data: null, error: { message: "No grade selected. Please select a grade first." } }
