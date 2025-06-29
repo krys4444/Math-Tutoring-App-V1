@@ -171,12 +171,22 @@ export default function CoursePage() {
         {/* Call to Action */}
         <div className="text-center">
           <p className="text-gray-600 mb-6">
-            Want to be notified when this course is ready? We'll send you an email as soon as it's available!
+            {course
+              ? "Ready to start learning? View the course units below!"
+              : "Want to be notified when this course is ready? We'll send you an email as soon as it's available!"}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button onClick={() => router.back()} className="bg-purple-500 hover:bg-purple-600 px-8 py-3">
               Back to My Courses
             </Button>
+            {course && (
+              <Button
+                onClick={() => router.push(`/course/${courseId}/units`)}
+                className="bg-green-500 hover:bg-green-600 px-8 py-3"
+              >
+                View Course Units
+              </Button>
+            )}
             <Button
               variant="outline"
               className="px-8 py-3 bg-transparent"
