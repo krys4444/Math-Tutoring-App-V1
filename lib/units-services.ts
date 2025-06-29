@@ -17,8 +17,6 @@ export const unitService = {
       .from("units")
       .select("*")
       .eq("course_id", courseId)
-      .order("order", { ascending: true }) // optional: sort units by order field
-      .order("unit_name", { ascending: true }) // secondary sort
 
     return { data, error }
   },
