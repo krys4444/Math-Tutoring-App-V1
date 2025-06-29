@@ -58,7 +58,6 @@ export const courseService = {
       .from("courses")
       .select("*")
       .eq("grade_id", gradeId)
-      .order("course_name", { ascending: true })
 
     return { data: coursesData, error: coursesError }
   },
