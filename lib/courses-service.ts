@@ -49,32 +49,11 @@ export const courseService = {
       .from("courses")
       .select("*")
       .eq("grade", userGradeData.grades.grade)
-      .order("course_name", { ascending: true })
 
     return { data: coursesData, error: coursesError }
   },
 
-  // Get all courses regardless of grade (for admin/browse purposes)
-  async getAllCourses(): Promise<{ data: Course[] | null; error: any }> {
-    const { data, error } = await supabase
-      .from("courses")
-      .select("*")
-      .order("grade", { ascending: true })
-      .order("course_name", { ascending: true })
 
-    return { data, error }
-  },
-
-  // Get courses by specific grade level
-  async getCoursesByGrade(gradeLevel: number): Promise<{ data: Course[] | null; error: any }> {
-    const { data, error } = await supabase
-      .from("courses")
-      .select("*")
-      .eq("grade", gradeLevel)
-      .order("course_name", { ascending: true })
-
-    return { data, error }
-  },
 
   // Get a specific course by ID
   async getCourseById(courseId: number): Promise<{ data: Course | null; error: any }> {
@@ -83,31 +62,6 @@ export const courseService = {
     return { data, error }
   },
 
-  // Get user's enrolled courses
-  async getUserEnrolledCourses(): Promise<{ data: any[] | null; error: any }> {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-
-    if (!session?.user) {
-      return { data: null, error: { message: "User not authenticated" } }
-    }
-
-    const { data, error } = await supabase
-      .from("courses")
-      .select(`
-        *,
-        courses (
-          course_id,
-          course_name,
-          course_description
-        )
-      `)
-      .eq("user_id", session.user.id)
-      .order("enrollment_date", { ascending: false })
-
-    return { data, error }
-  },
 
   // Enroll user in a course
   async enrollInCourse(courseId: number): Promise<{ data: any; error: any }> {
@@ -118,56 +72,3 @@ export const courseService = {
     if (!session?.user) {
       return { data: null, error: { message: "User not authenticated" } }
     }
-
-    // Check if already enrolled
-    const { data: existingEnrollment } = await supabase
-      .from("courses")
-      .select("*")
-      .eq("user_id", session.user.id)
-      .eq("course_id", courseId)
-      .single()
-
-    if (existingEnrollment) {
-      return { data: null, error: { message: "Already enrolled in this course" } }
-    }
-
-    // Enroll the user
-    const { data, error } = await supabase
-      .from("user_courses")
-      .insert({
-        user_id: session.user.id,
-        course_id: courseId,
-        progress: 0,
-        status: "enrolled",
-      })
-      .select()
-
-    return { data, error }
-  },
-
-  // Update course progress
-  async updateCourseProgress(courseId: number, progress: number): Promise<{ data: any; error: any }> {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-
-    if (!session?.user) {
-      return { data: null, error: { message: "User not authenticated" } }
-    }
-
-    const status = progress >= 100 ? "completed" : "enrolled"
-
-    const { data, error } = await supabase
-      .from("user_courses")
-      .update({
-        progress: progress,
-        status: status,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", session.user.id)
-      .eq("course_id", courseId)
-      .select()
-
-    return { data, error }
-  },
-}
