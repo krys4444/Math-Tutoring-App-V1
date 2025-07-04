@@ -11,51 +11,113 @@ import { unitService, type Unit } from "@/lib/units-services"
 import { subunitService, type Subunit } from "@/lib/subunits-service"
 import { lessonService, type Lesson } from "@/lib/lessons-service"
 
-// Component to render markdown and LaTeX content
+// Component to render markdown and LaTeX content with better formatting
 function LessonContent({ content }: { content: string }) {
   const processContent = (text: string) => {
+    // Split content by LaTeX expressions ($$...$$)
     const parts = text.split(/(\$\$[^$]+\$\$)/g)
 
     return parts.map((part, index) => {
       if (part.startsWith("$$") && part.endsWith("$$")) {
-        const latex = part.slice(2, -2)
+        // This is a LaTeX expression
+        const latex = part.slice(2, -2) // Remove $$ from both ends
         return (
-          <div key={index} className="my-4 text-center">
-            <span className="inline-block p-2 bg-blue-50 rounded border text-blue-800 font-mono">{latex}</span>
+          <div key={index} className="my-6 flex justify-center">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm">
+              <div className="text-blue-900 font-mono text-lg text-center">{latex}</div>
+              <div className="text-xs text-blue-600 text-center mt-2">LaTeX Formula</div>
+            </div>
           </div>
         )
       } else {
-        return (
-          <div key={index} className="whitespace-pre-wrap">
-            {processMarkdown(part)}
-          </div>
-        )
+        // This is regular text/markdown - process basic markdown
+        return <div key={index}>{processMarkdown(part)}</div>
       }
     })
   }
 
+  // Enhanced markdown processing
   const processMarkdown = (text: string) => {
-    text = text.replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold mt-6 mb-3 text-gray-800">$1</h3>')
-    text = text.replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mt-8 mb-4 text-gray-800">$1</h2>')
-    text = text.replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mt-8 mb-4 text-gray-800">$1</h1>')
-    text = text.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-    text = text.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+    if (!text.trim()) return null
+
+    // Handle headers with better styling
+    text = text.replace(
+      /^### (.*$)/gm,
+      '<h3 class="text-xl font-semibold mt-8 mb-4 text-gray-800 border-b border-gray-200 pb-2">$1</h3>',
+    )
+    text = text.replace(
+      /^## (.*$)/gm,
+      '<h2 class="text-2xl font-semibold mt-10 mb-6 text-gray-800 border-b-2 border-purple-200 pb-3">$1</h2>',
+    )
+    text = text.replace(
+      /^# (.*$)/gm,
+      '<h1 class="text-3xl font-bold mt-12 mb-8 text-gray-800 border-b-2 border-purple-300 pb-4">$1</h1>',
+    )
+
+    // Handle bold and italic with better styling
+    text = text.replace(
+      /\*\*(.*?)\*\*/g,
+      '<strong class="font-semibold text-gray-900 bg-yellow-50 px-1 rounded">$1</strong>',
+    )
+    text = text.replace(/\*(.*?)\*/g, '<em class="italic text-gray-700">$1</em>')
+
+    // Handle code blocks with syntax highlighting styling
     text = text.replace(
       /```([\s\S]*?)```/g,
-      '<pre class="bg-gray-100 p-4 rounded-lg my-4 overflow-x-auto"><code class="text-sm">$1</code></pre>',
+      '<div class="my-6"><pre class="bg-gray-900 text-gray-100 p-6 rounded-lg overflow-x-auto border border-gray-300 shadow-sm"><code class="text-sm font-mono leading-relaxed">$1</code></pre></div>',
     )
-    text = text.replace(/`(.*?)`/g, '<code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">$1</code>')
-    text = text.replace(/\n\n/g, '</p><p class="mb-4">')
-    text = text.replace(/\n/g, "<br>")
 
+    // Handle inline code
+    text = text.replace(
+      /`(.*?)`/g,
+      '<code class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm font-mono border">$1</code>',
+    )
+
+    // Handle unordered lists
+    text = text.replace(/^\* (.*$)/gm, '<li class="ml-6 mb-2 text-gray-700 list-disc">$1</li>')
+    text = text.replace(/^- (.*$)/gm, '<li class="ml-6 mb-2 text-gray-700 list-disc">$1</li>')
+
+    // Handle ordered lists
+    text = text.replace(/^\d+\. (.*$)/gm, '<li class="ml-6 mb-2 text-gray-700 list-decimal">$1</li>')
+
+    // Wrap consecutive list items in ul/ol tags
+    text = text.replace(
+      /(<li class="ml-6 mb-2 text-gray-700 list-disc">.*<\/li>\s*)+/g,
+      '<ul class="my-4 space-y-1">$&</ul>',
+    )
+    text = text.replace(
+      /(<li class="ml-6 mb-2 text-gray-700 list-decimal">.*<\/li>\s*)+/g,
+      '<ol class="my-4 space-y-1">$&</ol>',
+    )
+
+    // Handle blockquotes
+    text = text.replace(
+      /^> (.*$)/gm,
+      '<blockquote class="border-l-4 border-blue-400 bg-blue-50 pl-6 py-4 my-6 italic text-gray-700 rounded-r-lg">$1</blockquote>',
+    )
+
+    // Handle horizontal rules
+    text = text.replace(/^---$/gm, '<hr class="my-8 border-t-2 border-gray-300">')
+
+    // Handle line breaks - convert double newlines to paragraph breaks
+    text = text.replace(/\n\n+/g, '</p><p class="mb-6 text-gray-700 leading-relaxed">')
+
+    // Handle single line breaks within paragraphs
+    text = text.replace(/\n/g, '<br class="mb-2">')
+
+    // Wrap in paragraph tags if there's content
     if (text.trim()) {
-      text = '<p class="mb-4">' + text + "</p>"
+      text = '<p class="mb-6 text-gray-700 leading-relaxed text-lg">' + text + "</p>"
     }
 
     return <div dangerouslySetInnerHTML={{ __html: text }} />
   }
 
-  return <div className="prose prose-lg max-w-none">{processContent(content)}</div>
+  return (
+    <div className="prose prose-lg max-w-none">
+      <div className="space-y-4 text-base leading-relaxed">{processContent(content)}</div>
+    </div>
+  )
 }
 
 interface LessonWithSubunit extends Lesson {
@@ -260,14 +322,14 @@ export default function ConsolidatedLessonsPage() {
             </div>
 
             {/* Lesson Content */}
-            <Card className="mb-6">
-              <CardHeader>
+            <Card className="mb-6 shadow-lg border-0">
+              <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-200">
                 <CardTitle className="flex items-center gap-2 text-gray-800">
-                  <BookOpen className="w-5 h-5" />
+                  <BookOpen className="w-5 h-5 text-purple-600" />
                   Lesson Content
                 </CardTitle>
               </CardHeader>
-              <CardContent className="prose prose-lg max-w-none">
+              <CardContent className="p-8 bg-white">
                 <LessonContent content={selectedLesson.lesson_content} />
               </CardContent>
             </Card>
