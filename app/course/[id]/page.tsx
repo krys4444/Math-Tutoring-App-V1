@@ -68,7 +68,12 @@ export default function CoursePage() {
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => router.back()} className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push("/dashboard")}
+              className="flex items-center gap-2"
+            >
               <ArrowLeft className="w-4 h-4" />
               Back to Dashboard
             </Button>
@@ -275,7 +280,7 @@ export default function CoursePage() {
                   ? "Ready to start learning? Click on any unit above to begin!"
                   : "Course content is being prepared. Check back soon for exciting lessons!"}
               </p>
-              <Button onClick={() => router.back()} className="bg-purple-500 hover:bg-purple-600 px-8 py-3">
+              <Button onClick={() => router.push("/dashboard")} className="bg-purple-500 hover:bg-purple-600 px-8 py-3">
                 Back to My Courses
               </Button>
             </div>
@@ -289,7 +294,7 @@ export default function CoursePage() {
               </div>
               <h3 className="text-lg font-semibold text-gray-800 mb-2">Course Not Found</h3>
               <p className="text-gray-600 mb-4">The course you're looking for doesn't exist or has been removed.</p>
-              <Button onClick={() => router.back()} className="bg-purple-500 hover:bg-purple-600">
+              <Button onClick={() => router.push("/dashboard")} className="bg-purple-500 hover:bg-purple-600">
                 Back to Dashboard
               </Button>
             </div>
