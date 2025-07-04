@@ -4,7 +4,16 @@ import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArrowLeft, BookOpen, CheckCircle, FileText, Loader2, ChevronRight } from "lucide-react"
+import {
+  ArrowLeft,
+  BookOpen,
+  CheckCircle,
+  FileText,
+  Loader2,
+  ChevronRight,
+  PanelRightOpen,
+  PanelRightClose,
+} from "lucide-react"
 import { useState, useEffect } from "react"
 import { courseService, type Course } from "@/lib/courses-service"
 import { unitService, type Unit } from "@/lib/units-services"
@@ -77,6 +86,11 @@ export default function ConsolidatedLessonsPage() {
   const [selectedLessonIndex, setSelectedLessonIndex] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed)
+  }
 
   useEffect(() => {
     const loadUnitAndLessons = async () => {
@@ -175,7 +189,7 @@ export default function ConsolidatedLessonsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex transition-all duration-300">
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
@@ -203,6 +217,24 @@ export default function ConsolidatedLessonsPage() {
             {/* Lesson Actions */}
             {selectedLesson && (
               <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleSidebar}
+                  className="flex items-center gap-2 bg-transparent"
+                >
+                  {sidebarCollapsed ? (
+                    <>
+                      <PanelRightOpen className="w-4 h-4" />
+                      Show Lessons
+                    </>
+                  ) : (
+                    <>
+                      <PanelRightClose className="w-4 h-4" />
+                      Hide Lessons
+                    </>
+                  )}
+                </Button>
                 <span className="text-sm text-gray-600">
                   Lesson {selectedLessonIndex + 1} of {allLessons.length}
                 </span>
@@ -304,80 +336,82 @@ export default function ConsolidatedLessonsPage() {
       </div>
 
       {/* Right Sidebar - Lessons List */}
-      <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800">Lessons</h2>
-          <p className="text-sm text-gray-600">{allLessons.length} lessons available</p>
-        </div>
+      {!sidebarCollapsed && (
+        <div className="w-80 bg-white border-l border-gray-200 flex flex-col transition-all duration-300">
+          <div className="p-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-800">Lessons</h2>
+            <p className="text-sm text-gray-600">{allLessons.length} lessons available</p>
+          </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {loading ? (
-            <div className="p-4 text-center">
-              <Loader2 className="w-6 h-6 animate-spin text-purple-500 mx-auto mb-2" />
-              <p className="text-sm text-gray-600">Loading lessons...</p>
-            </div>
-          ) : allLessons.length > 0 ? (
-            <div className="p-2">
-              {allLessons.map((lesson, index) => (
-                <button
-                  key={lesson.lesson_id}
-                  onClick={() => handleLessonSelect(lesson, index)}
-                  className={`w-full text-left p-3 rounded-lg mb-2 transition-colors ${
-                    selectedLesson?.lesson_id === lesson.lesson_id
-                      ? "bg-purple-100 border-2 border-purple-500"
-                      : "bg-gray-50 hover:bg-gray-100 border-2 border-transparent"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
-                        selectedLesson?.lesson_id === lesson.lesson_id
-                          ? "bg-purple-500 text-white"
-                          : "bg-gray-300 text-gray-600"
-                      }`}
-                    >
-                      {index + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3
-                        className={`font-medium text-sm mb-1 ${
-                          selectedLesson?.lesson_id === lesson.lesson_id ? "text-purple-700" : "text-gray-800"
+          <div className="flex-1 overflow-y-auto">
+            {loading ? (
+              <div className="p-4 text-center">
+                <Loader2 className="w-6 h-6 animate-spin text-purple-500 mx-auto mb-2" />
+                <p className="text-sm text-gray-600">Loading lessons...</p>
+              </div>
+            ) : allLessons.length > 0 ? (
+              <div className="p-2">
+                {allLessons.map((lesson, index) => (
+                  <button
+                    key={lesson.lesson_id}
+                    onClick={() => handleLessonSelect(lesson, index)}
+                    className={`w-full text-left p-3 rounded-lg mb-2 transition-colors ${
+                      selectedLesson?.lesson_id === lesson.lesson_id
+                        ? "bg-purple-100 border-2 border-purple-500"
+                        : "bg-gray-50 hover:bg-gray-100 border-2 border-transparent"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+                          selectedLesson?.lesson_id === lesson.lesson_id
+                            ? "bg-purple-500 text-white"
+                            : "bg-gray-300 text-gray-600"
                         }`}
                       >
-                        Lesson {index + 1}
-                      </h3>
-                      <p className="text-xs text-gray-500 mb-1">{lesson.subunit_name}</p>
-                      <p className="text-xs text-gray-400 line-clamp-2">
-                        {lesson.lesson_content.length > 80
-                          ? `${lesson.lesson_content.substring(0, 80)}...`
-                          : lesson.lesson_content}
-                      </p>
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3
+                          className={`font-medium text-sm mb-1 ${
+                            selectedLesson?.lesson_id === lesson.lesson_id ? "text-purple-700" : "text-gray-800"
+                          }`}
+                        >
+                          Lesson {index + 1}
+                        </h3>
+                        <p className="text-xs text-gray-500 mb-1">{lesson.subunit_name}</p>
+                        <p className="text-xs text-gray-400 line-clamp-2">
+                          {lesson.lesson_content.length > 80
+                            ? `${lesson.lesson_content.substring(0, 80)}...`
+                            : lesson.lesson_content}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="p-4 text-center">
-              <BookOpen className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">No lessons available</p>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4 text-center">
+                <BookOpen className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">No lessons available</p>
+              </div>
+            )}
+          </div>
+
+          {/* Progress Summary */}
+          {allLessons.length > 0 && (
+            <div className="p-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">Progress</span>
+                <span className="text-sm font-semibold text-gray-700">0 / {allLessons.length}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-purple-500 h-2 rounded-full" style={{ width: "0%" }}></div>
+              </div>
             </div>
           )}
         </div>
-
-        {/* Progress Summary */}
-        {allLessons.length > 0 && (
-          <div className="p-4 border-t border-gray-200 bg-gray-50">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Progress</span>
-              <span className="text-sm font-semibold text-gray-700">0 / {allLessons.length}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-purple-500 h-2 rounded-full" style={{ width: "0%" }}></div>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   )
 }
