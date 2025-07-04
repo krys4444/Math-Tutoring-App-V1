@@ -211,23 +211,17 @@ export default function SubunitPage() {
 
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  {getContentIcon(subunit.content_type)}
+                  <BookOpen className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800">{subunit.subunit_name}</h1>
-                  <p className="text-gray-600">{subunit.description}</p>
+                  <h1 className="text-3xl font-bold text-gray-800">{subunit.sub_unit_name}</h1>
+                  <p className="text-gray-600">{subunit.sub_unit_description}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4 text-sm text-gray-500">
-                <span>Item {subunit.order}</span>
+                <span>Subunit</span>
                 <span>•</span>
                 <span>Unit: {unit.unit_name}</span>
-                {subunit.estimated_duration_minutes && (
-                  <>
-                    <span>•</span>
-                    <span>{subunit.estimated_duration_minutes} min</span>
-                  </>
-                )}
               </div>
             </div>
 

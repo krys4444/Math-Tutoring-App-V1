@@ -137,41 +137,39 @@ export default function CoursePage() {
                 </div>
 
                 <div className="grid gap-4">
-                  {units
-                    .sort((a, b) => a.order - b.order)
-                    .map((unit, index) => (
-                      <Card
-                        key={unit.unit_id}
-                        className="hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-purple-500"
-                        onClick={() => handleUnitClick(unit)}
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-semibold text-sm">
-                                  {unit.order}
-                                </div>
-                                <h3 className="text-lg font-semibold text-gray-800">{unit.unit_name}</h3>
+                  {units.map((unit, index) => (
+                    <Card
+                      key={unit.unit_id}
+                      className="hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-purple-500"
+                      onClick={() => handleUnitClick(unit)}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-semibold text-sm">
+                                {index + 1}
                               </div>
-                              <p className="text-gray-600 mb-3">{unit.description}</p>
-                              <div className="flex items-center gap-4 text-xs text-gray-500">
-                                <span>Unit {unit.order}</span>
-                                <span>•</span>
-                                <span>Course ID: {unit.course_id}</span>
-                              </div>
+                              <h3 className="text-lg font-semibold text-gray-800">{unit.unit_name}</h3>
                             </div>
-                            <div className="flex flex-col items-center gap-2 ml-4">
-                              {/* Status indicator - you can customize this based on user progress */}
-                              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                                <Lock className="w-5 h-5 text-gray-400" />
-                              </div>
-                              <span className="text-xs text-gray-500">Locked</span>
+                            <p className="text-gray-600 mb-3">{unit.description}</p>
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <span>Unit {index + 1}</span>
+                              <span>•</span>
+                              <span>Course ID: {unit.course_id}</span>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          <div className="flex flex-col items-center gap-2 ml-4">
+                            {/* Status indicator - you can customize this based on user progress */}
+                            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                              <Lock className="w-5 h-5 text-gray-400" />
+                            </div>
+                            <span className="text-xs text-gray-500">Locked</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
 
                 {/* Course Progress Summary */}
