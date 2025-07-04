@@ -85,6 +85,8 @@ export default function LessonPage() {
   const [lesson, setLesson] = useState<Lesson | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [allLessons, setAllLessons] = useState<Lesson[]>([])
+  const [lessonIndex, setLessonIndex] = useState<number>(0)
 
   useEffect(() => {
     const loadLessonData = async () => {
@@ -128,6 +130,17 @@ export default function LessonPage() {
             return
           }
           setLesson(lessonData)
+
+          // Load all lessons for this subunit to determine the correct lesson number
+          const { data: allLessonsData, error: allLessonsError } = await lessonService.getLessonsBySubunitId(
+            Number(subunitId),
+          )
+          if (!allLessonsError && allLessonsData) {
+            setAllLessons(allLessonsData)
+            // Find the index of the current lesson
+            const currentIndex = allLessonsData.findIndex((l) => l.lesson_id === Number(lessonId))
+            setLessonIndex(currentIndex >= 0 ? currentIndex : 0)
+          }
         } catch (err) {
           setError(`Unexpected error: ${err instanceof Error ? err.message : "Unknown error"}`)
         }
@@ -209,7 +222,7 @@ export default function LessonPage() {
                 <span>›</span>
                 <span>{subunit.sub_unit_name}</span>
                 <span>›</span>
-                <span className="text-gray-800 font-medium">Lesson {lessonId}</span>
+                <span className="text-gray-800 font-medium">Lesson {lessonIndex + 1}</span>
               </div>
 
               <div className="flex items-center gap-3 mb-4">
@@ -217,7 +230,7 @@ export default function LessonPage() {
                   <FileText className="w-6 h-6 text-yellow-600" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800">Lesson {lessonId}</h1>
+                  <h1 className="text-3xl font-bold text-gray-800">Lesson {lessonIndex + 1}</h1>
                   <p className="text-gray-600">From: {subunit.sub_unit_name}</p>
                 </div>
               </div>
@@ -300,6 +313,9 @@ export default function LessonPage() {
                     <p className="text-blue-600">{subunit.sub_unit_name}</p>
                   </div>
                 </div>
+                <span>
+                  Lesson {lessonIndex + 1} of {allLessons.length}
+                </span>
               </CardContent>
             </Card>
           </>
