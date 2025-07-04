@@ -14,33 +14,42 @@ import { lessonService, type Lesson } from "@/lib/lessons-service"
 // Component to render markdown and LaTeX content with better formatting
 function LessonContent({ content }: { content: string }) {
   const processContent = (text: string) => {
-    // Split content by LaTeX expressions ($$...$$)
-    const parts = text.split(/(\$\$[^$]+\$\$)/g)
+    // First, handle display math \[ \] (block level)
+    text = text.replace(/\\\[([\s\S]*?)\\\]/g, (match, latex) => {
+      return `<div class="my-6 flex justify-center"><div class="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm"><div class="text-blue-900 font-mono text-lg text-center">${latex.trim()}</div><div class="text-xs text-blue-600 text-center mt-2">Mathematical Expression</div></div></div>`
+    })
 
-    return parts.map((part, index) => {
-      if (part.startsWith("$$") && part.endsWith("$$")) {
-        // This is a LaTeX expression
-        const latex = part.slice(2, -2) // Remove $$ from both ends
-        return (
-          <div key={index} className="my-6 flex justify-center">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm">
-              <div className="text-blue-900 font-mono text-lg text-center">{latex}</div>
-              <div className="text-xs text-blue-600 text-center mt-2">LaTeX Formula</div>
-            </div>
-          </div>
-        )
+    // Handle inline math $$ $$
+    text = text.replace(/\\$$(.*?)\\$$/g, (match, latex) => {
+      return `<span class="inline-block bg-blue-50 border border-blue-200 rounded px-2 py-1 mx-1 text-blue-900 font-mono text-sm">${latex}</span>`
+    })
+
+    // Handle $$ expressions (often used for large headings or emphasis)
+    text = text.replace(/\$\$(.*?)\$\$/g, (match, latex) => {
+      // Check if it looks like a heading (contains \Large, \textbf, etc.)
+      if (latex.includes("\\Large") || latex.includes("\\textbf")) {
+        // Extract the actual text content, removing LaTeX commands
+        const cleanText = latex
+          .replace(/\\Large/g, "")
+          .replace(/\\textbf\{(.*?)\}/g, "$1")
+          .replace(/\{|\}/g, "")
+          .trim()
+        return `<h2 class="text-2xl font-bold mt-8 mb-6 text-gray-800 border-b-2 border-purple-300 pb-3">${cleanText}</h2>`
       } else {
-        // This is regular text/markdown - process basic markdown
-        return <div key={index}>{processMarkdown(part)}</div>
+        // Regular math expression
+        return `<div class="my-6 flex justify-center"><div class="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm"><div class="text-blue-900 font-mono text-lg text-center">${latex}</div><div class="text-xs text-blue-600 text-center mt-2">Mathematical Expression</div></div></div>`
       }
     })
-  }
 
-  // Enhanced markdown processing
-  const processMarkdown = (text: string) => {
-    if (!text.trim()) return null
+    // Handle images with better styling
+    text = text.replace(/!\[(.*?)\]$$(.*?)$$/g, (match, alt, src) => {
+      return `<div class="my-8 flex justify-center"><div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm max-w-2xl"><img src="${src}" alt="${alt}" class="w-full h-auto rounded" /><div class="text-sm text-gray-600 text-center mt-2 italic">${alt}</div></div></div>`
+    })
 
-    // Handle headers with better styling
+    // Handle horizontal rules
+    text = text.replace(/^---$/gm, '<hr class="my-8 border-t-2 border-gray-300">')
+
+    // Handle headers (regular markdown)
     text = text.replace(
       /^### (.*$)/gm,
       '<h3 class="text-xl font-semibold mt-8 mb-4 text-gray-800 border-b border-gray-200 pb-2">$1</h3>',
@@ -54,14 +63,14 @@ function LessonContent({ content }: { content: string }) {
       '<h1 class="text-3xl font-bold mt-12 mb-8 text-gray-800 border-b-2 border-purple-300 pb-4">$1</h1>',
     )
 
-    // Handle bold and italic with better styling
+    // Handle bold and italic
     text = text.replace(
       /\*\*(.*?)\*\*/g,
       '<strong class="font-semibold text-gray-900 bg-yellow-50 px-1 rounded">$1</strong>',
     )
     text = text.replace(/\*(.*?)\*/g, '<em class="italic text-gray-700">$1</em>')
 
-    // Handle code blocks with syntax highlighting styling
+    // Handle code blocks
     text = text.replace(
       /```([\s\S]*?)```/g,
       '<div class="my-6"><pre class="bg-gray-900 text-gray-100 p-6 rounded-lg overflow-x-auto border border-gray-300 shadow-sm"><code class="text-sm font-mono leading-relaxed">$1</code></pre></div>',
@@ -73,22 +82,35 @@ function LessonContent({ content }: { content: string }) {
       '<code class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm font-mono border">$1</code>',
     )
 
-    // Handle unordered lists
-    text = text.replace(/^\* (.*$)/gm, '<li class="ml-6 mb-2 text-gray-700 list-disc">$1</li>')
-    text = text.replace(/^- (.*$)/gm, '<li class="ml-6 mb-2 text-gray-700 list-disc">$1</li>')
+    // Handle unordered lists with better spacing
+    const lines = text.split("\n")
+    let inList = false
+    const processedLines = []
 
-    // Handle ordered lists
-    text = text.replace(/^\d+\. (.*$)/gm, '<li class="ml-6 mb-2 text-gray-700 list-decimal">$1</li>')
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim()
 
-    // Wrap consecutive list items in ul/ol tags
-    text = text.replace(
-      /(<li class="ml-6 mb-2 text-gray-700 list-disc">.*<\/li>\s*)+/g,
-      '<ul class="my-4 space-y-1">$&</ul>',
-    )
-    text = text.replace(
-      /(<li class="ml-6 mb-2 text-gray-700 list-decimal">.*<\/li>\s*)+/g,
-      '<ol class="my-4 space-y-1">$&</ol>',
-    )
+      if (line.match(/^\* /)) {
+        if (!inList) {
+          processedLines.push('<ul class="my-4 space-y-2 ml-6">')
+          inList = true
+        }
+        const content = line.replace(/^\* /, "")
+        processedLines.push(`<li class="text-gray-700 list-disc">${content}</li>`)
+      } else {
+        if (inList) {
+          processedLines.push("</ul>")
+          inList = false
+        }
+        processedLines.push(line)
+      }
+    }
+
+    if (inList) {
+      processedLines.push("</ul>")
+    }
+
+    text = processedLines.join("\n")
 
     // Handle blockquotes
     text = text.replace(
@@ -96,26 +118,31 @@ function LessonContent({ content }: { content: string }) {
       '<blockquote class="border-l-4 border-blue-400 bg-blue-50 pl-6 py-4 my-6 italic text-gray-700 rounded-r-lg">$1</blockquote>',
     )
 
-    // Handle horizontal rules
-    text = text.replace(/^---$/gm, '<hr class="my-8 border-t-2 border-gray-300">')
+    // Handle paragraphs - split by double newlines
+    const paragraphs = text.split(/\n\s*\n/)
+    const processedParagraphs = paragraphs.map((para) => {
+      para = para.trim()
+      if (!para) return ""
 
-    // Handle line breaks - convert double newlines to paragraph breaks
-    text = text.replace(/\n\n+/g, '</p><p class="mb-6 text-gray-700 leading-relaxed">')
+      // Don't wrap if it's already HTML (contains < and >)
+      if (para.includes("<") && para.includes(">")) {
+        return para
+      }
 
-    // Handle single line breaks within paragraphs
-    text = text.replace(/\n/g, '<br class="mb-2">')
+      // Handle single line breaks within paragraphs
+      para = para.replace(/\n/g, '<br class="mb-1">')
 
-    // Wrap in paragraph tags if there's content
-    if (text.trim()) {
-      text = '<p class="mb-6 text-gray-700 leading-relaxed text-lg">' + text + "</p>"
-    }
+      return `<p class="mb-6 text-gray-700 leading-relaxed text-lg">${para}</p>`
+    })
 
-    return <div dangerouslySetInnerHTML={{ __html: text }} />
+    return processedParagraphs.join("\n")
   }
+
+  const processedContent = processContent(content)
 
   return (
     <div className="prose prose-lg max-w-none">
-      <div className="space-y-4 text-base leading-relaxed">{processContent(content)}</div>
+      <div className="space-y-4 text-base leading-relaxed" dangerouslySetInnerHTML={{ __html: processedContent }} />
     </div>
   )
 }
