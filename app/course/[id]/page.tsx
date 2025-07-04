@@ -58,8 +58,8 @@ export default function CoursePage() {
   }, [courseId])
 
   const handleUnitClick = (unit: Unit) => {
-    // Navigate to unit detail page (you can create this later)
-    router.push(`/course/${courseId}/unit/${unit.unit_id}`)
+    // Navigate to consolidated lessons page
+    router.push(`/course/${courseId}/unit/${unit.unit_id}/lessons`)
   }
 
   return (
