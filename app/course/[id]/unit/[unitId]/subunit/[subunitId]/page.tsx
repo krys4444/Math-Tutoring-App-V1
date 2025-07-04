@@ -4,19 +4,7 @@ import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-  ArrowLeft,
-  BookOpen,
-  CheckCircle,
-  Lock,
-  Loader2,
-  Play,
-  FileText,
-  Video,
-  Headphones,
-  Clock,
-  Target,
-} from "lucide-react"
+import { ArrowLeft, BookOpen, CheckCircle, Lock, Loader2, FileText } from "lucide-react"
 import { useState, useEffect } from "react"
 import { courseService, type Course } from "@/lib/courses-service"
 import { unitService, type Unit } from "@/lib/units-services"
@@ -93,64 +81,8 @@ export default function SubunitPage() {
   }, [courseId, unitId, subunitId])
 
   const handleLessonClick = (lesson: Lesson) => {
-    // Navigate to lesson detail page (you can create this later)
+    // Navigate to lesson detail page
     router.push(`/course/${courseId}/unit/${unitId}/subunit/${subunitId}/lesson/${lesson.lesson_id}`)
-  }
-
-  const getContentIcon = (contentType: string | null | undefined) => {
-    if (!contentType) return <Play className="w-5 h-5" />
-
-    switch (contentType.toLowerCase()) {
-      case "video":
-        return <Video className="w-5 h-5" />
-      case "audio":
-        return <Headphones className="w-5 h-5" />
-      case "text":
-      case "reading":
-        return <FileText className="w-5 h-5" />
-      case "interactive":
-      case "exercise":
-        return <Target className="w-5 h-5" />
-      default:
-        return <Play className="w-5 h-5" />
-    }
-  }
-
-  const getContentColor = (contentType: string | null | undefined) => {
-    if (!contentType) return "text-purple-600 bg-purple-100"
-
-    switch (contentType.toLowerCase()) {
-      case "video":
-        return "text-red-600 bg-red-100"
-      case "audio":
-        return "text-green-600 bg-green-100"
-      case "text":
-      case "reading":
-        return "text-blue-600 bg-blue-100"
-      case "interactive":
-      case "exercise":
-        return "text-orange-600 bg-orange-100"
-      default:
-        return "text-purple-600 bg-purple-100"
-    }
-  }
-
-  const getDifficultyColor = (difficulty: string | null | undefined) => {
-    if (!difficulty) return "text-gray-600 bg-gray-100"
-
-    switch (difficulty.toLowerCase()) {
-      case "beginner":
-      case "easy":
-        return "text-green-600 bg-green-100"
-      case "intermediate":
-      case "medium":
-        return "text-yellow-600 bg-yellow-100"
-      case "advanced":
-      case "hard":
-        return "text-red-600 bg-red-100"
-      default:
-        return "text-gray-600 bg-gray-100"
-    }
   }
 
   return (
@@ -206,7 +138,7 @@ export default function SubunitPage() {
                 <span>›</span>
                 <span>{unit.unit_name}</span>
                 <span>›</span>
-                <span className="text-gray-800 font-medium">{subunit.subunit_name}</span>
+                <span className="text-gray-800 font-medium">{subunit.sub_unit_name}</span>
               </div>
 
               <div className="flex items-center gap-3 mb-4">
@@ -245,50 +177,30 @@ export default function SubunitPage() {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
                               <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-semibold text-sm">
-                                {lesson.order}
+                                {index + 1}
                               </div>
-                              <h3 className="text-lg font-semibold text-gray-800">{lesson.lesson_name}</h3>
-                              <div
-                                className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getContentColor(lesson.content_type)}`}
-                              >
-                                {getContentIcon(lesson.content_type)}
-                                <span className="capitalize">{lesson.content_type || "Lesson"}</span>
+                              <h3 className="text-lg font-semibold text-gray-800">Lesson {index + 1}</h3>
+                              <div className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-blue-600 bg-blue-100">
+                                <FileText className="w-4 h-4" />
+                                <span>Content</span>
                               </div>
-                              {lesson.difficulty_level && (
-                                <div
-                                  className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(lesson.difficulty_level)}`}
-                                >
-                                  {lesson.difficulty_level}
-                                </div>
-                              )}
                             </div>
-                            <p className="text-gray-600 mb-3">{lesson.description}</p>
 
-                            {/* Learning Objectives */}
-                            {lesson.learning_objectives && lesson.learning_objectives.length > 0 && (
-                              <div className="mb-3">
-                                <h4 className="text-sm font-medium text-gray-700 mb-1">Learning Objectives:</h4>
-                                <ul className="text-xs text-gray-600 list-disc list-inside space-y-1">
-                                  {lesson.learning_objectives.map((objective, idx) => (
-                                    <li key={idx}>{objective}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
+                            {/* Show preview of lesson content */}
+                            <div className="text-gray-600 mb-3">
+                              <p className="line-clamp-3">
+                                {lesson.lesson_content.length > 150
+                                  ? `${lesson.lesson_content.substring(0, 150)}...`
+                                  : lesson.lesson_content}
+                              </p>
+                            </div>
 
                             <div className="flex items-center gap-4 text-xs text-gray-500">
-                              <span>Lesson {lesson.order}</span>
-                              {lesson.estimated_duration_minutes && (
-                                <>
-                                  <span>•</span>
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="w-3 h-3" />
-                                    <span>{lesson.estimated_duration_minutes} min</span>
-                                  </div>
-                                </>
-                              )}
+                              <span>Lesson {index + 1}</span>
                               <span>•</span>
-                              <span>Subunit ID: {lesson.subunit_id}</span>
+                              <span>Sub-unit ID: {lesson.sub_unit_id}</span>
+                              <span>•</span>
+                              <span>{lesson.lesson_content.length} characters</span>
                             </div>
                           </div>
                           <div className="flex flex-col items-center gap-2 ml-4">
